@@ -1,0 +1,20 @@
+.cpSlides .slidesPagination li {
+	cursor: pointer;
+	padding: 5px 10px;
+}
+
+.cpSlides .slidesPagination li.current {
+	background: rgb(50, 130, 170);
+	color: white;
+}
+
+.cpSlides .slidesPagination .followLink {
+	border-bottom: 1px solid white;
+	cursor: pointer;
+}
+
+.cpSlides .slidesPagination .followLink:hover {
+	border-bottom: 1px solid rgb(0, 80, 120);
+	color: rgb(0, 80, 120);
+	cursor: pointer;
+}

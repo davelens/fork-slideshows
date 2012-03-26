@@ -1,0 +1,24 @@
+.basicSlides .pagination li {
+	display: block;
+	list-style: none;
+}
+
+.basicSlides .pagination .followLink {
+	cursor: pointer;
+}
+
+.basicSlides .pagination {
+	clear: both;
+	margin: 0 !important;
+}
+
+.basicSlides .caption {
+	background: rgba(15, 15, 15, 0.6);
+	bottom: 5px;
+	color: white;
+	height: 18px;
+	left: 0;
+	padding: 5px 10px;
+	position: absolute;
+	width: 100%;
+}
