@@ -89,14 +89,17 @@ class FrontendSlideshowsModel
 			$records[$key]['data'] = unserialize($record['data']);
 
 			// is there a link given?
-			if(isset($records[$key]['data']['link']))
+			if($records[$key]['data']['link'] !== null)
 			{
 				// set the external option. This allows us to link to external sources
 				$external = ($records[$key]['data']['link']['type'] == 'external');
 				$records[$key]['data']['link']['external'] = $external;
 
 				// if this is an internal page, we need to build the url since we have the id
-				if(!$external) $records[$key]['data']['link']['url'] = FrontendNavigation::getURL($records[$key]['data']['link']['id']);
+				if(!$external)
+				{
+					$records[$key]['data']['link']['url'] = FrontendNavigation::getURL($records[$key]['data']['link']['id']);
+				}
 			}
 		}
 

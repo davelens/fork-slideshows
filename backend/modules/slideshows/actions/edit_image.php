@@ -109,7 +109,7 @@ class BackendSlideshowsEditImage extends BackendBaseActionEdit
 				$item['filename'] = $this->record['image'];
 
 				// the extra data
-				$data = array('link' => array('type' => ''));
+				$data = array('link' => null);
 
 				// links
 				if($this->frm->getField('internal_url')->isFilled())

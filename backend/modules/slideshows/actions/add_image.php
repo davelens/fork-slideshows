@@ -107,7 +107,7 @@ class BackendSlideshowsAddImage extends BackendBaseActionEdit
 				$item['caption'] = (!$caption->isFilled()) ? null : $caption->getValue();
 
 				// the extra data
-				$data = array('link' => array('type' => ''));
+				$data = array('link' => null);
 
 				// links
 				if($this->frm->getField('internal_url')->isFilled())
