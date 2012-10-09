@@ -38,7 +38,10 @@ class FrontendSlideshowsWidgetIndex extends FrontendBaseWidget
 		$this->loadTemplate();
 
 		// If we succesfully gotten data, we can load the slideshow type
-		if($this->getData()) $this->loadSlideshowType();
+		if($this->getData())
+		{
+			$this->loadSlideshowType();
+		}
 		// no images yet
 		else
 		{
@@ -123,6 +126,10 @@ class FrontendSlideshowsWidgetIndex extends FrontendBaseWidget
 	 */
 	private function loadSlideshowType()
 	{
+		// load the general flexslider styles
+		$this->addCSS('flexslider.css');
+
+		// load type-specific css-file
 		$frontendThemePath = '/frontend/modules/slideshows/layout';
 		$cssFile = FrontendTheme::getPath($frontendThemePath . '/css/' . $this->slideshow['type'] . '.css');
 		$templateFile = FrontendTheme::getPath($frontendThemePath . '/templates/' . $this->slideshow['type'] . '.tpl');
@@ -131,7 +138,7 @@ class FrontendSlideshowsWidgetIndex extends FrontendBaseWidget
 		if(SpoonFile::exists(PATH_WWW . $cssFile)) $this->addCSS($cssFile, true);
 
 		// add the javascript for the active type
-		$this->addJS('slides.js');
+		$this->addJS('flexslider.js');
 		$this->addJS($this->slideshow['type'] . '.js');
 
 		$templatePath = PATH_WWW . $templateFile;

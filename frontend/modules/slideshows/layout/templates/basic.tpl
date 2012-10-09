@@ -1,10 +1,9 @@
 {*
-	The CSS classes "basicSlides" and "basicSlidesContainer" should be kept to keep the JS from breaking.
+	The CSS classes "flexslider" and "basic" should be kept to keep the JS from breaking.
 *}
 
-
-<div id="slideshow" class="basicSlides">
-	<div class="basicSlidesContainer">
+<div class="flexslider">
+	<div class="basic">
 		{iteration:items}
 			<div id="basic-{$items.index}" class="slide"{option:!items.first} style="display:none;"{/option:!items.first}>
 				{option:items.data.link}
@@ -17,15 +16,4 @@
 			</div>
 		{/iteration:items}
 	</div>
-
-	{* No javascript enabled *}
-	<noscript>
-		{option:defaultImage}
-		<div class="basicSlides">
-			<div class="basicSlidesContainer col col-6">
-				<img src="{$defaultImage.image_url}" alt="{$defaultImage.title}" />
-			</div>
-		</div>
-		{/option:defaultImage}
-	</noscript>
 </div>

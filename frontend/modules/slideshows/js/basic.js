@@ -1,20 +1,17 @@
 if(!jsSlideshows) { var jsSlideshows = new Object(); }
 
-jsSlideshows.basic = 
+jsSlideshows.basic =
 {
 	init: function()
-	{	
-		$('.basicSlides').slides({
-			play: 5000,
-			pause: 2500,
-			hoverPause: true,
-			container: 'basicSlidesContainer',
-			crossfade: true,
-			effect: 'fade'
+	{
+		// options: https://github.com/woothemes/FlexSlider/blob/master/jquery.flexslider.js#L804
+		$('.flexslider').flexslider({
+			selector: '.basic > .slide'
 		});
 	},
-	
+
 	eoo: true
 }
 
-$(document).ready(jsSlideshows.basic.init); 
+$(document).ready(jsSlideshows.basic.init);
+
