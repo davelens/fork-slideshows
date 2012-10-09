@@ -43,4 +43,3 @@ CREATE TABLE `slideshows_types` (
 
 
 INSERT INTO `slideshows_types` VALUES('', 'basic', NULL);
-INSERT INTO `slideshows_types` VALUES('', 'captioned_navigation', NULL);
