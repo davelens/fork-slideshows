@@ -1,5 +1,5 @@
 {*
-	The CSS classes "flexslider" and "basic" should be kept to keep the JS from breaking.
+	The CSS classes "flexslider", "basic" and "slide" are needed in JS.
 *}
 
 <div class="flexslider">
@@ -7,12 +7,18 @@
 		{iteration:items}
 			<div id="basic-{$items.index}" class="slide"{option:!items.first} style="display:none;"{/option:!items.first}>
 				{option:items.data.link}
-					<a href="{$items.data.link.url}"{option:items.data.link.external} target="_blank" rel="nofollow"{/option:items.data.link.external} title="{$items.title}">
+				<a href="{$items.data.link.url}"{option:items.data.link.external} target="_blank" rel="nofollow"{/option:items.data.link.external} title="{$items.title}">
 				{/option:items.data.link}
 					<img src="{$items.image_url}" alt="{$items.title}" />
 				{option:items.data.link}
-					</a>
+				</a>
 				{/option:items.data.link}
+
+				{option:items.caption}
+				<div class="caption">
+					{$items.caption}
+				</div>
+				{/option:items.caption}
 			</div>
 		{/iteration:items}
 	</div>
