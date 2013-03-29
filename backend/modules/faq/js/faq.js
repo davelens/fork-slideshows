@@ -2,7 +2,7 @@
  * Interaction for the faq categories
  *
  * @author	Lester Lievens <lester.lievens@netlash.com>
- * @author	Thomas Deceuninck <thomasdeceuninck@netlash.com>
+ * @author	Thomas Deceuninck <thomas@fronto.be>
  * @author	Annelies Van Extergem <annelies@netlash.com>
  * @author	Davy Van Vooren <davy.vanvooren@netlash.com>
  */
@@ -34,7 +34,7 @@ jsBackend.faq =
 		// reset initial empty grids
 		$('table.emptyGrid').each(function(){
 			$(this).find('td').parent().remove();
-			$(this).append('<tr class="noQuestions"><td colspan="' + $(this).find('th').length + '">{$msgNoQuestionInCategory}</td></tr>');
+			$(this).append('<tr class="noQuestions"><td colspan="' + $(this).find('th').length + '">' + jsBackend.locale.msg('NoQuestionInCategory') +'</td></tr>');
 			$(this).removeClass('emptyGrid');
 		});
 
@@ -98,7 +98,7 @@ jsBackend.faq =
 						},
 						success: function(data, textStatus)
 						{
-							// not a succes so revert the changes
+							// not a success so revert the changes
 							if(data.code == 200)
 							{
 								// change count in title (if any)
@@ -107,7 +107,7 @@ jsBackend.faq =
 								// if there are no records -> show message
 								if($('div#dataGrid-' + fromCategoryId + ' table.dataGrid tr').length == 1)
 								{
-									$('div#dataGrid-' + fromCategoryId + ' table.dataGrid').append('<tr class="noQuestions"><td colspan="3">{$msgNoQuestionInCategory}</td></tr>');
+									$('div#dataGrid-' + fromCategoryId + ' table.dataGrid').append('<tr class="noQuestions"><td colspan="3">' + jsBackend.locale.msg('NoQuestionInCategory') + '</td></tr>');
 								}
 
 								// check empty categories

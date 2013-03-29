@@ -10,7 +10,7 @@
 /**
  * This is a widget with the related items based on tags
  *
- * @author Matthias Mullie <matthias@mullie.eu>
+ * @author Matthias Mullie <forkcms@mullie.eu>
  * @author Annelies Van Extergem <annelies.vanextergem@netlash.com>
  */
 class FrontendTagsWidgetRelated extends FrontendBaseWidget
@@ -57,7 +57,7 @@ class FrontendTagsWidgetRelated extends FrontendBaseWidget
 		foreach($this->tags as $tag)
 		{
 			// fetch entries
-			$items = (array) FrontendModel::getDB()->getRecords(
+			$items = (array) FrontendModel::getContainer()->get('database')->getRecords(
 				'SELECT mt.module, mt.other_id
 				 FROM modules_tags AS mt
 				 INNER JOIN tags AS t ON t.id = mt.tag_id

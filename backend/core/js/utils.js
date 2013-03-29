@@ -2,7 +2,7 @@
  * Utilities; useful scripts
  *
  * @author	Tijs Verkoyen <tijs@sumocoders.be>
- * @author	Thomas Deceuninck <thomasdeceuninck@netlash.com>
+ * @author	Thomas Deceuninck <thomas@fronto.be>
  */
 var utils =
 {
@@ -53,7 +53,7 @@ utils.cookies =
 		var cookiesEnabled = (navigator.cookieEnabled) ? true : false;
 
 		// unknown property?
-		if(typeof navigator.cookieEanbled == 'undefined' && !cookiesEnabled)
+		if(typeof navigator.cookieEnabled == 'undefined' && !cookiesEnabled)
 		{
 			// try to set a cookie
 			document.cookie = 'testcookie';
@@ -79,11 +79,20 @@ utils.cookies =
 		{
 			var cookie = cookies[i];
 			while(cookie.charAt(0) == ' ') cookie = cookie.substring(1, cookie.length);
-			if(cookie.indexOf(name) == 0) return cookie.substring(name.lenght, cookie.length);
+			if(cookie.indexOf(name) == 0) return cookie.substring(name.length, cookie.length);
 		}
 
 		// fallback
 		return null;
+	},
+	
+	setCookie: function(name, value, days)
+	{
+		if(typeof days == 'undefined') days = 7;
+		
+		var expireDate = new Date();
+		expireDate.setDate(expireDate.getDate() + days);
+		document.cookie = name + '=' + escape(value) + ';expires=' + expireDate.toUTCString() + ';path=/';
 	}
 }
 
@@ -157,7 +166,7 @@ utils.form =
  *
  * @author	Tijs Verkoyen <tijs@sumocoders.be>
  * @author	Dieter Vanden Eynde <dieter@netlash.com>
- * @author	Matthias Mullie <matthias@mullie.eu>
+ * @author	Matthias Mullie <forkcms@mullie.eu>
  */
 utils.string =
 {
@@ -244,8 +253,32 @@ utils.string =
 	replaceAll: function(value, needle, replacement)
 	{
 		if(value == undefined) return '';
-
 		return value.replace(new RegExp(needle, 'g'), replacement);
+	},
+
+	/**
+	 * Sprintf replaces all arguments that occur in the string (%1$s, %2$s, ...)
+	 *
+	 * @return	string
+	 * @param	string value
+	 * @params	string arguments
+	 */
+	sprintf: function(value)
+	{
+		if(arguments.length < 2) return value;
+		else
+		{
+			// replace $ symbol first, because our RegExp won't except this symbol
+			value = value.replace(/\$s/g, 'Ss');
+
+			// find all variables and replace them
+			for(var i = 1; i < arguments.length; i++)
+			{
+				value = utils.string.replaceAll(value, '%' + i + 'Ss', arguments[i]);
+			}
+		}
+
+		return value;
 	},
 
 	/**
@@ -274,6 +307,17 @@ utils.string =
 		return value.replace(pattern, '');
 	},
 
+	/**
+	 * Ucfirst a string
+	 * 
+	 * @return	string
+	 * @param	string value
+	 */ 
+	ucfirst: function(value)
+	{
+		return value.charAt(0).toUpperCase() + value.slice(1);
+	},
+	
 	/**
 	 * PHP-like urlencode
 	 *

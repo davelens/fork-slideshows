@@ -10,7 +10,7 @@
 /**
  * This is the synonyms-action, it will display the overview of search synonyms
  *
- * @author Matthias Mullie <matthias@mullie.eu>
+ * @author Matthias Mullie <forkcms@mullie.eu>
  */
 class BackendSearchSynonyms extends BackendBaseActionIndex
 {
@@ -42,7 +42,7 @@ class BackendSearchSynonyms extends BackendBaseActionIndex
 		// check if this action is allowed
 		if(BackendAuthentication::isAllowedAction('edit_synonym'))
 		{
-			// set colum URLs
+			// set column URLs
 			$this->dataGrid->setColumnURL('term', BackendModel::createURLForAction('edit_synonym') . '&amp;id=[id]');
 
 			// add column

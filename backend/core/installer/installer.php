@@ -12,7 +12,7 @@
  *
  * @author Davy Hellemans <davy.hellemans@netlash.com>
  * @author Tijs Verkoyen <tijs@sumocoders.be>
- * @author Matthias Mullie <matthias@mullie.eu>
+ * @author Matthias Mullie <forkcms@mullie.eu>
  * @author Dieter Vanden Eynde <dieter.vandeneynde@netlash.com>
  * @author Annelies Van Extergem <annelies.vanextergem@netlash.com>
  * @author Jelmer Snoeck <jelmer.snoeck@netlash.com>
@@ -105,7 +105,7 @@ class ModuleInstaller
 		$name = (string) $name;
 
 		// module does not yet exists
-		if(!(bool) $this->getDB()->getVar('SELECT COUNT(name) FROM modules WHERE name = ?', $name))
+		if(!(bool) $this->getDB()->getVar('SELECT 1 FROM modules WHERE name = ? LIMIT 1', $name))
 		{
 			// build item
 			$item = array(
@@ -352,6 +352,7 @@ class ModuleInstaller
 			if($xml !== false)
 			{
 				// import locale
+				require_once BACKEND_CORE_PATH . '/engine/model.php';
 				require_once BACKEND_MODULES_PATH . '/locale/engine/model.php';
 				BackendLocaleModel::importXML($xml, $overwriteConflicts, $this->getLanguages(), $this->getInterfaceLanguages(), $this->getDefaultUserID(), gmdate('Y-m-d H:i:s'));
 			}
@@ -675,9 +676,10 @@ class ModuleInstaller
 
 		// check if the action already exists
 		$exists = (bool) $this->getDB()->getVar(
-			'SELECT COUNT(id)
+			'SELECT 1
 			 FROM groups_rights_actions
-			 WHERE group_id = ? AND module = ? AND action = ?',
+			 WHERE group_id = ? AND module = ? AND action = ?
+			 LIMIT 1',
 			array($groupId, $module, $action)
 		);
 
@@ -706,10 +708,12 @@ class ModuleInstaller
 		$module = (string) $module;
 
 		// module doesn't exist
-		if(!(bool) $this->getDB()->getVar('SELECT COUNT(id)
-											FROM groups_rights_modules
-											WHERE group_id = ? AND module = ?',
-											array((int) $groupId, (string) $module)))
+		if(!(bool) $this->getDB()->getVar(
+			'SELECT 1
+			 FROM groups_rights_modules
+			 WHERE group_id = ? AND module = ?
+			 LIMIT 1',
+			array((int) $groupId, (string) $module)))
 		{
 			$item = array(
 				'group_id' => $groupId,
@@ -804,9 +808,10 @@ class ModuleInstaller
 		{
 			// check if this setting already exists
 			$exists = (bool) $this->getDB()->getVar(
-				'SELECT COUNT(name)
+				'SELECT 1
 				 FROM modules_settings
-				 WHERE module = ? AND name = ?',
+				 WHERE module = ? AND name = ?
+				 LIMIT 1',
 				array($module, $name)
 			);
 
@@ -823,6 +828,42 @@ class ModuleInstaller
 				$this->getDB()->insert('modules_settings', $item);
 			}
 		}
+	}
+
+	/**
+	 * Subscribe to an event, when the subsription already exists, the callback will be updated.
+	 *
+	 * @param string $eventModule The module that triggers the event.
+	 * @param string $eventName The name of the event.
+	 * @param string $module The module that subsribes to the event.
+	 * @param mixed $callback The callback that should be executed when the event is triggered.
+	 */
+	public function subscribeToEvent($eventModule, $eventName, $module, $callback)
+	{
+		// build record
+		$item['event_module'] = (string) $eventModule;
+		$item['event_name'] = (string) $eventName;
+		$item['module'] = (string) $module;
+		$item['callback'] = serialize($callback);
+		$item['created_on'] = gmdate('Y-m-d H:i:s');
+
+		// get db
+		$db = $this->getDB();
+
+		// check if the subscription already exists
+		$exists = (bool) $db->getVar(
+			'SELECT 1
+			 FROM hooks_subscriptions AS i
+			 WHERE i.event_module = ? AND i.event_name = ? AND i.module = ?
+			 LIMIT 1',
+			array($eventModule, $eventName, $module)
+		);
+
+		// update
+		if($exists) $db->update('hooks_subscriptions', $item, 'event_module = ? AND event_name = ? AND module = ?', array($eventModule, $eventName, $module));
+
+		// insert
+		else $db->insert('hooks_subscriptions', $item);
 	}
 }
 
@@ -987,6 +1028,6 @@ class CoreInstaller extends ModuleInstaller
 
 		// ckfinder
 		$this->setSetting('core', 'ckfinder_license_name', 'Fork CMS');
-		$this->setSetting('core', 'ckfinder_license_key', 'QJH2-32UV-6VRM-V6Y7-A91J-W26Z-3F8R');
+		$this->setSetting('core', 'ckfinder_license_key', 'VNA6-BP17-T7D3-CP1B-EMJF-X7Q3-5THF');
 	}
 }

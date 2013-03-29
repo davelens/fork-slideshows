@@ -12,7 +12,7 @@
  * Therefore it will handle meta-stuff (title, including JS, including CSS, ...)
  *
  * @author Tijs Verkoyen <tijs@sumocoders.be>
- * @author Matthias Mullie <matthias@mullie.eu>
+ * @author Matthias Mullie <forkcms@mullie.eu>
  */
 class FrontendHeader extends FrontendBaseObject
 {
@@ -29,6 +29,13 @@ class FrontendHeader extends FrontendBaseObject
 	 * @var	array
 	 */
 	private $cssFiles = array();
+
+	/**
+	 * Data that will be passed to js
+	 *
+	 * @var array
+	 */
+	private $jsData = array();
 
 	/**
 	 * The added js-files
@@ -84,7 +91,7 @@ class FrontendHeader extends FrontendBaseObject
 		$this->addJS('/frontend/core/js/jquery/jquery.ui.js', false);
 		$this->addJS('/frontend/core/js/jquery/jquery.frontend.js', true);
 		$this->addJS('/frontend/core/js/utils.js', true);
-		$this->addJS('/frontend/core/js/frontend.js', false, true);
+		$this->addJS('/frontend/core/js/frontend.js', false);
 	}
 
 	/**
@@ -132,14 +139,12 @@ class FrontendHeader extends FrontendBaseObject
 	 *
 	 * @param  string $file The path to the javascript-file that should be loaded.
 	 * @param bool[optional] $minify Should the file be minified?
-	 * @param bool[optional] $parseThroughPHP Should the file be parsed through PHP?
 	 * @param bool[optional] $addTimestamp May we add a timestamp for caching purposes?
 	 */
-	public function addJS($file, $minify = true, $parseThroughPHP = false, $addTimestamp = null)
+	public function addJS($file, $minify = true, $addTimestamp = null)
 	{
 		$file = (string) $file;
 		$minify = (bool) $minify;
-		$parseThroughPHP = (bool) $parseThroughPHP;
 		$addTimestamp = (bool) $addTimestamp;
 
 		// get file path
@@ -147,29 +152,6 @@ class FrontendHeader extends FrontendBaseObject
 
 		// no minifying when debugging
 		if(SPOON_DEBUG) $minify = false;
-
-		// no minifying when parsing through PHP
-		if($parseThroughPHP) $minify = false;
-
-		// if parse through PHP we should alter the path
-		if($parseThroughPHP)
-		{
-			// process the path
-			$chunks = explode('/', str_replace(array('/frontend/modules/', '/frontend/core'), '', $file));
-
-			// validate
-			if(!isset($chunks[count($chunks) - 3])) throw new FrontendException('Invalid file (' . $file . ').');
-
-			// fetch values
-			$module = $chunks[count($chunks) - 3];
-			$file = $chunks[count($chunks) - 1];
-
-			// reset module for core
-			if($module == '') $module = 'core';
-
-			// alter the file
-			$file = '/frontend/js.php?module=' . $module . '&amp;file=' . $file . '&amp;language=' . FRONTEND_LANGUAGE;
-		}
 
 		// try to minify
 		if($minify) $file = $this->minifyJS($file);
@@ -180,6 +162,18 @@ class FrontendHeader extends FrontendBaseObject
 			// add to files
 			$this->jsFiles[] = array('file' => $file, 'add_timestamp' => $addTimestamp);
 		}
+	}
+
+	/**
+	 * Add data into the jsData
+	 *
+	 * @param string $module	The name of the module.
+	 * @param string $key		The key whereunder the value will be stored.
+	 * @param mixed $value		The value
+	 */
+	public function addJsData($module, $key, $value)
+	{
+		$this->jsData[$module][$key] = $value;
 	}
 
 	/**
@@ -310,7 +304,7 @@ class FrontendHeader extends FrontendBaseObject
 		$image = str_replace(SITE_URL, '', $image);
 
 		// check if it no longer points to an absolute uri
-		if(substr($image, 0, 7) != 'http://')
+		if(substr($image, 0, 7) != SITE_PROTOCOL . '://')
 		{
 			// check if image exists
 			if(!SpoonFile::exists(PATH_WWW . $image)) return;
@@ -321,6 +315,10 @@ class FrontendHeader extends FrontendBaseObject
 
 		// add to metadata
 		$this->addMetaData(array('property' => 'og:image', 'content' => $image), $overwrite, array('property', 'content'));
+		if(SITE_PROTOCOL == 'https')
+		{
+			$this->addMetaData(array('property' => 'og:image:secure_url', 'content' => $image), $overwrite, array('property', 'content'));
+		}
 	}
 
 	/**
@@ -485,6 +483,12 @@ class FrontendHeader extends FrontendBaseObject
 		// check that file does not yet exist or has been updated already
 		if(!SpoonFile::exists($finalPath) || filemtime(PATH_WWW . $file) > filemtime($finalPath))
 		{
+			// create directory if it does not exist
+			if(!SpoonDirectory::exists(dirname($finalPath)))
+			{
+				SpoonDirectory::create(dirname($finalPath));
+			}
+
 			// minify the file
 			require_once PATH_LIBRARY . '/external/minify.php';
 			$css = new MinifyCSS(PATH_WWW . $file);
@@ -510,6 +514,12 @@ class FrontendHeader extends FrontendBaseObject
 		// check that file does not yet exist or has been updated already
 		if(!SpoonFile::exists($finalPath) || filemtime(PATH_WWW . $file) > filemtime($finalPath))
 		{
+			// create directory if it does not exist
+			if(!SpoonDirectory::exists(dirname($finalPath)))
+			{
+				SpoonDirectory::create(dirname($finalPath));
+			}
+
 			// minify the file
 			require_once PATH_LIBRARY . '/external/minify.php';
 			$js = new MinifyJS(PATH_WWW . $file);
@@ -592,7 +602,7 @@ class FrontendHeader extends FrontendBaseObject
 		if($webPropertyId != '' && strpos($siteHTMLHeader, $webPropertyId) === false && strpos($siteHTMLFooter, $webPropertyId) === false)
 		{
 			// build GA-tracking code
-			$trackingCode = '<script type="text/javascript">
+			$trackingCode = '<script>
 								var _gaq = [[\'_setAccount\', \'' . $webPropertyId . '\'],
 											[\'_setDomainName\', \'none\'],
 											[\'_trackPageview\'],
@@ -609,6 +619,13 @@ class FrontendHeader extends FrontendBaseObject
 			// add to the header
 			$siteHTMLHeader .= "\n" . $trackingCode;
 		}
+
+		// store language
+		$this->jsData['FRONTEND_LANGUAGE'] = FRONTEND_LANGUAGE;
+
+		// encode and add
+		$jsData = json_encode($this->jsData);
+		$siteHTMLHeader .= "\n" . '<script>var jsData = ' . $jsData . '</script>';
 
 		// assign site wide html
 		$this->tpl->assign('siteHTMLHeader', trim($siteHTMLHeader));
@@ -782,6 +799,14 @@ class FrontendHeader extends FrontendBaseObject
 	 */
 	private function parseSeo()
 	{
+		// when on the homepage of the default language, set the clean site url as canonical, because of redirect fix
+		$queryString = trim($this->URL->getQueryString(), '/');
+		$language = FrontendModel::getModuleSetting('core', 'default_language', SITE_DEFAULT_LANGUAGE);
+		if($queryString == $language)
+		{
+			$this->canonical = rtrim(SITE_URL, '/');
+		}
+
 		// any canonical URL provided?
 		if($this->canonical != '') $url = $this->canonical;
 
@@ -874,10 +899,10 @@ class FrontendHeader extends FrontendBaseObject
 			else
 			{
 				// if the current pagetitle is empty we should add the sitetitle
-				if($this->pageTitle == '') $this->pageTitle = $value . SITE_TITLE_SEPERATOR . FrontendModel::getModuleSetting('core', 'site_title_' . FRONTEND_LANGUAGE, SITE_DEFAULT_TITLE);
+				if($this->pageTitle == '') $this->pageTitle = $value . ' -  ' . FrontendModel::getModuleSetting('core', 'site_title_' . FRONTEND_LANGUAGE, SITE_DEFAULT_TITLE);
 
 				// prepend the value to the current pagetitle
-				else $this->pageTitle = $value . SITE_TITLE_SEPERATOR . $this->pageTitle;
+				else $this->pageTitle = $value . ' - ' . $this->pageTitle;
 			}
 		}
 	}

@@ -10,7 +10,7 @@
 /**
  * This is the settings-action, it will display a form to set general search settings
  *
- * @author Matthias Mullie <matthias@mullie.eu>
+ * @author Matthias Mullie <forkcms@mullie.eu>
  */
 class BackendSearchSettings extends BackendBaseActionEdit
 {
@@ -65,7 +65,7 @@ class BackendSearchSettings extends BackendBaseActionEdit
 			// check if module is searchable
 			if(!in_array($module, $disallowedModules) && is_callable(array('Frontend' . SpoonFilter::toCamelCase($module) . 'Model', 'search')))
 			{
-				// add field to decide wether or not this module is searchable
+				// add field to decide whether or not this module is searchable
 				$this->frm->addCheckbox('search_' . $module, isset($this->settings[$module]) ? $this->settings[$module]['searchable'] == 'Y' : false);
 
 				// add field to decide weight for this module

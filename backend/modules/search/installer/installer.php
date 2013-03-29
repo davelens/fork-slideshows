@@ -10,7 +10,7 @@
 /**
  * Installer for the search module
  *
- * @author Matthias Mullie <matthias@mullie.eu>
+ * @author Matthias Mullie <forkcms@mullie.eu>
  * @author Dieter Vanden Eynde <dieter.vandeneynde@netlash.com>
  */
 class SearchInstaller extends ModuleInstaller
@@ -56,7 +56,7 @@ class SearchInstaller extends ModuleInstaller
 		$this->setNavigation($navigationModulesId, 'Search', 'search/settings');
 
 		// add extra's
-		$searchId = $this->insertExtra('search', 'block', 'Search', null, 'a:1:{s:3:"url";s:40:"/private/nl/search/statistics?token=true";}', 'N', 2000);
+		$searchId = $this->insertExtra('search', 'block', 'Search', null, null, 'N', 2000);
 		$this->insertExtra('search', 'widget', 'SearchForm', 'form', null, 'N', 2001);
 
 		// loop languages
@@ -64,11 +64,13 @@ class SearchInstaller extends ModuleInstaller
 		{
 			// check if a page for search already exists in this language
 			// @todo refactor this nasty if statement...
-			if(!(bool) $this->getDB()->getVar('SELECT COUNT(p.id)
-												FROM pages AS p
-												INNER JOIN pages_blocks AS b ON b.revision_id = p.revision_id
-												WHERE b.extra_id = ? AND p.language = ?',
-												array($searchId, $language)))
+			if(!(bool) $this->getDB()->getVar(
+				'SELECT 1
+				 FROM pages AS p
+				 INNER JOIN pages_blocks AS b ON b.revision_id = p.revision_id
+				 WHERE b.extra_id = ? AND p.language = ?
+				 LIMIT 1',
+				array($searchId, $language)))
 			{
 				// insert search
 				$this->insertPage(

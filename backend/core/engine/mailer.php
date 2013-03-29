@@ -1,5 +1,7 @@
 <?php
 
+use \TijsVerkoyen\CssToInlineStyles\CssToInlineStyles;
+
 /*
  * This file is part of Fork CMS.
  *
@@ -61,6 +63,9 @@ class BackendMailer
 		if(!SpoonFilter::isEmail($email['reply_to_email'])) throw new BackendException('Invalid e-mail address for reply-to address.');
 
 		// build array
+		$email['to_name'] = SpoonFilter::htmlentitiesDecode($email['to_name']);
+		$email['from_name'] = SpoonFilter::htmlentitiesDecode($email['from_name']);
+		$email['reply_to_name'] = SpoonFilter::htmlentitiesDecode($email['reply_to_name']);
 		$email['subject'] = SpoonFilter::htmlentitiesDecode($subject);
 		if($isRawHTML) $email['html'] = $template;
 		else $email['html'] = self::getTemplateContent($template, $variables);
@@ -137,7 +142,7 @@ class BackendMailer
 		}
 
 		// insert the email into the database
-		$id = BackendModel::getDB(true)->insert('emails', $email);
+		$id = BackendModel::getContainer()->get('database')->insert('emails', $email);
 
 		// trigger event
 		BackendModel::triggerEvent('core', 'after_email_queued', array('id' => $id));
@@ -156,7 +161,7 @@ class BackendMailer
 	 */
 	public static function getQueuedMailIds()
 	{
-		return (array) BackendModel::getDB()->getColumn(
+		return (array) BackendModel::getContainer()->get('database')->getColumn(
 			'SELECT e.id
 			 FROM emails AS e
 			 WHERE e.send_on < ? OR e.send_on IS NULL',
@@ -168,7 +173,7 @@ class BackendMailer
 	 * Returns the content from a given template
 	 *
 	 * @param string $template The template to use.
-	 * @param array[optional] $variables The variabled to assign.
+	 * @param array[optional] $variables The variables to assign.
 	 * @return string
 	 */
 	private static function getTemplateContent($template, $variables = null)
@@ -190,9 +195,6 @@ class BackendMailer
 		$replace = array('href="' . SITE_URL . '/', 'src="' . SITE_URL . '/');
 		$content = str_replace($search, $replace, $content);
 
-		// require CSSToInlineStyles
-		require_once 'external/css_to_inline_styles.php';
-
 		// create instance
 		$cssToInlineStyles = new CSSToInlineStyles();
 
@@ -213,7 +215,7 @@ class BackendMailer
 	public static function send($id)
 	{
 		$id = (int) $id;
-		$db = BackendModel::getDB(true);
+		$db = BackendModel::getContainer()->get('database');
 
 		// get record
 		$emailRecord = (array) $db->getRecord(

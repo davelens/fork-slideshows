@@ -13,7 +13,7 @@
  * @author Davy Hellemans <davy.hellemans@netlash.com>
  * @author Dave Lens <dave.lens@netlash.com>
  * @author Tijs Verkoyen <tijs@sumocoders.com>
- * @author Matthias Mullie <matthias@mullie.eu>
+ * @author Matthias Mullie <forkcms@mullie.eu>
  */
 class BackendBlogIndex extends BackendBaseActionIndex
 {
@@ -159,7 +159,7 @@ class BackendBlogIndex extends BackendBaseActionIndex
 		// check if this action is allowed
 		if(BackendAuthentication::isAllowedAction('edit'))
 		{
-			// set colum URLs
+			// set column URLs
 			$this->dgDrafts->setColumnURL('title', BackendModel::createURLForAction('edit') . '&amp;id=[id]&amp;draft=[revision_id]&amp;category=' . $this->categoryId);
 
 			// add edit column

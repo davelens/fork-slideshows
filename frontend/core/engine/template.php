@@ -17,7 +17,7 @@
  *
  * @author Tijs Verkoyen <tijs@sumocoders.be>
  * @author Dieter Vanden Eynde <dieter@dieterve.be>
- * @author Matthias Mullie <matthias@mullie.eu>
+ * @author Matthias Mullie <forkcms@mullie.eu>
  * @author Frederik Heyninck <frederik@figure8.be>
  */
 class FrontendTemplate extends SpoonTemplate
@@ -99,23 +99,24 @@ class FrontendTemplate extends SpoonTemplate
 		// parse the label
 		$this->parseLabels();
 
-		// parse locale
-		$this->parseLocale();
-
 		// parse date/time formats
 		$this->parseDateTimeFormats();
 
 		// parse vars
 		$this->parseVars();
 
-		// parse headers
-		if(!$customHeaders) SpoonHTTP::setHeaders('content-type: text/html;charset=' . SPOON_CHARSET);
+		// in case of a call from parseWidget we don't need to set the headers again!
+		if(!Spoon::exists('parseWidget') || !Spoon::get('parseWidget'))
+		{
+			// parse headers
+			if(!$customHeaders) SpoonHTTP::setHeaders('content-type: text/html;charset=' . SPOON_CHARSET);
+		}
 
 		// get template path
 		$template = FrontendTheme::getPath($template);
 
 		/*
-		 * Code below is exactly the same as from our parent (SpoonTemplate::display), exept
+		 * Code below is exactly the same as from our parent (SpoonTemplate::display), except
 		 * for the compiler being used. We want our own compiler extension here.
 		 */
 
@@ -149,7 +150,7 @@ class FrontendTemplate extends SpoonTemplate
 	}
 
 	/**
-	 * Retrives the already assigned variables.
+	 * Retrieves the already assigned variables.
 	 *
 	 * @return array
 	 */
@@ -213,6 +214,9 @@ class FrontendTemplate extends SpoonTemplate
 		$this->mapModifier('getnavigation', array('FrontendTemplateModifiers', 'getNavigation'));
 		$this->mapModifier('getsubnavigation', array('FrontendTemplateModifiers', 'getSubNavigation'));
 
+		// parse a widget
+		$this->mapModifier('parsewidget', array('FrontendTemplateModifiers', 'parseWidget'));
+
 		// rand
 		$this->mapModifier('rand', array('FrontendTemplateModifiers', 'random'));
 
@@ -241,6 +245,9 @@ class FrontendTemplate extends SpoonTemplate
 
 		// debug stuff
 		$this->mapModifier('dump', array('FrontendTemplateModifiers', 'dump'));
+
+		// profiles
+		$this->mapModifier('profilesetting', array('FrontendTemplateModifiers', 'profileSetting'));
 	}
 
 	/**
@@ -350,32 +357,6 @@ class FrontendTemplate extends SpoonTemplate
 
 		// assign messages
 		$this->assignArray($messages, 'msg');
-	}
-
-	/**
-	 * Parse the locale (things like months, days, ...)
-	 */
-	private function parseLocale()
-	{
-		// init vars
-		$locale = array();
-
-		// get months
-		$monthsLong = SpoonLocale::getMonths(FRONTEND_LANGUAGE, false);
-		$monthsShort = SpoonLocale::getMonths(FRONTEND_LANGUAGE, true);
-
-		// get days
-		$daysLong = SpoonLocale::getWeekDays(FRONTEND_LANGUAGE, false, 'sunday');
-		$daysShort = SpoonLocale::getWeekDays(FRONTEND_LANGUAGE, true, 'sunday');
-
-		// build labels
-		foreach($monthsLong as $key => $value) $locale['locMonthLong' . SpoonFilter::ucfirst($key)] = $value;
-		foreach($monthsShort as $key => $value) $locale['locMonthShort' . SpoonFilter::ucfirst($key)] = $value;
-		foreach($daysLong as $key => $value) $locale['locDayLong' . SpoonFilter::ucfirst($key)] = $value;
-		foreach($daysShort as $key => $value) $locale['locDayShort' . SpoonFilter::ucfirst($key)] = $value;
-
-		// assign
-		$this->assignArray($locale);
 	}
 
 	/**
@@ -580,7 +561,7 @@ class FrontendTemplateModifiers
 	 */
 	public static function getPath($var, $file)
 	{
-		// trick codensiffer
+		// trick codesniffer
 		$var = (string) $var;
 
 		return FrontendTheme::getPath($file);
@@ -595,7 +576,7 @@ class FrontendTemplateModifiers
 	 * @param string[optional] $var The variable.
 	 * @param string[optional] $type The type of navigation, possible values are: page, footer.
 	 * @param int[optional] $pageId The parent wherefore the navigation should be build.
-	 * @param int[optional] $startDepth The depth to strat from.
+	 * @param int[optional] $startDepth The depth to start from.
 	 * @param int[optional] $endDepth The maximum depth that has to be build.
 	 * @param string[optional] $excludeIds Which pageIds should be excluded (split them by -).
 	 * @param string[optional] $tpl The template that will be used.
@@ -614,6 +595,10 @@ class FrontendTemplateModifiers
 
 		// split URL into chunks
 		$chunks = (array) explode('/', $pageInfo['full_url']);
+		
+		// remove language chunk
+		$chunks = (SITE_MULTILANGUAGE) ? (array) array_slice($chunks,2) : (array) array_slice($chunks,1);
+		if( count($chunks) == 0 ) $chunks[0] = '';
 
 		// init var
 		$parentURL = '';
@@ -668,8 +653,8 @@ class FrontendTemplateModifiers
 	 * 	syntax: {$var|geturlforblock:module[:action[:language]]}
 	 *
 	 * @param string $var The string passed from the template.
-	 * @param string $module The module wherefor the URL should be build.
-	 * @param string[optional] $action A specific action wherefor the URL should be build, otherwise the default will be used.
+	 * @param string $module The module wherefore the URL should be build.
+	 * @param string[optional] $action A specific action wherefore the URL should be build, otherwise the default will be used.
 	 * @param string[optional] $language The language to use, if not provided we will use the loaded language.
 	 * @return string
 	 */
@@ -734,11 +719,70 @@ class FrontendTemplateModifiers
 	}
 
 	/**
+	 * Parse a widget straight from the template, rather than adding it through pages.
+	 *
+	 * @param string $var The variable.
+	 * @param string $module The module whose module we want to execute.
+	 * @param string $action The action to execute.
+	 * @param string $id The widget id (saved in data-column).
+	 */
+	public static function parseWidget($var, $module, $action, $id = null)
+	{
+		$data = $id !== null ? serialize(array('id' => $id)) : null;
+
+		// create new widget instance and return parsed content
+		$extra = new FrontendBlockWidget($module, $action, $data);
+
+		// set parseWidget because we will need it to skip setting headers in the display
+		Spoon::set('parseWidget', true);
+
+		try
+		{
+			$extra->execute();
+			$content = $extra->getContent();
+			Spoon::set('parseWidget', null);
+			return $content;
+		}
+		catch(Exception $e)
+		{
+			// if we are debugging, we want to see the exception
+			if(SPOON_DEBUG) throw $e;
+
+			return null;
+		}
+	}
+
+	/**
+	 * Output a profile setting
+	 *
+	 * @param string $var The variable
+	 * @param string $name The name of the setting
+	 * @return string
+	 */
+	public static function profileSetting($var, $name)
+	{
+		$profile = FrontendProfilesModel::get((int) $var);
+		if($profile === false) return '';
+
+		// convert into array
+		$profile = $profile->toArray();
+
+		// @remark I know this is dirty, but I couldn't find a better way.
+		if(in_array($name, array('display_name', 'registered_on', 'full_url')) && isset($profile[$name]))
+		{
+			return $profile[$name];
+		}
+
+		elseif(isset($profile['settings'][$name])) return $profile['settings'][$name];
+		else return '';
+	}
+
+	/**
 	 * Get a random var between a min and max
 	 * 	syntax: {$var|rand:min:max}
 	 *
 	 * @param string[optional] $var The string passed from the template.
-	 * @param int $min The miminum random number.
+	 * @param int $min The minimum random number.
 	 * @param int $max The maximum random number.
 	 * @return int
 	 */
@@ -767,7 +811,7 @@ class FrontendTemplateModifiers
 	 * Formats a timestamp as a string that indicates the time ago
 	 * 	syntax: {$var|timeago}
 	 *
-	 * @param string[optional] $var A UNIX-timestamp that will be formated as a time-ago-string.
+	 * @param string[optional] $var A UNIX-timestamp that will be formatted as a time-ago-string.
 	 * @return string
 	 */
 	public static function timeAgo($var = null)

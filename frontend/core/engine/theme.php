@@ -10,7 +10,7 @@
 /**
  * This class will take care of functionality pertaining themes.
  *
- * @author Matthias Mullie <matthias@mullie.eu>
+ * @author Matthias Mullie <forkcms@mullie.eu>
  */
 class FrontendTheme
 {
@@ -64,7 +64,7 @@ class FrontendTheme
 	 */
 	public static function getTheme()
 	{
-		// theme nama has not yet been saved, fetch and save it
+		// theme name has not yet been saved, fetch and save it
 		if(!self::$theme) self::$theme = FrontendModel::getModuleSetting('core', 'theme', null);
 
 		// return theme name

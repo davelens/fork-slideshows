@@ -12,7 +12,7 @@
  * Therefore it will handle meta-stuff (title, including JS, including CSS, ...)
  *
  * @author Tijs Verkoyen <tijs@sumocoders.be>
- * @author Matthias Mullie <matthias@mullie.eu>
+ * @author Matthias Mullie <forkcms@mullie.eu>
  */
 class BackendHeader
 {
@@ -22,6 +22,13 @@ class BackendHeader
 	 * @var array
 	 */
 	private $cssFiles = array();
+
+	/**
+	 * Data that will be passed to js
+	 *
+	 * @var array
+	 */
+	private $jsData = array();
 
 	/**
 	 * All added JS-files
@@ -62,11 +69,11 @@ class BackendHeader
 	 *   /backend/modules/MODULE/layout/css/FILE (for modules)
 	 *   /backend/core/layout/css/FILE (for core)
 	 *
-	 * If you set overwritePath to true, the above-described automatic path creation will not happend, instead the
+	 * If you set overwritePath to true, the above-described automatic path creation will not happen, instead the
 	 * file-parameter will be used as path; which we then expect to be a full path (It has to start with a slash '/')
 	 *
 	 * @param string $file The name of the file to load.
-	 * @param string[optional] $module The module wherin the file is located.
+	 * @param string[optional] $module The module wherein the file is located.
 	 * @param bool[optional] $overwritePath Should we overwrite the full path?
 	 * @param bool[optional] $minify Should the CSS be minified?
 	 * @param bool[optional] $addTimestamp May we add a timestamp for caching purposes?
@@ -119,42 +126,30 @@ class BackendHeader
 	/**
 	 * Add a JS-file.
 	 * If you don't specify a module, the current one will be used
-	 * If you set parseThroughPHP to true, the JS will be parsed by PHP (labels and vars will be assignes)
 	 * If you set overwritePath to true we expect a full path (It has to start with a /)
 	 *
 	 * @param string $file The file to load.
-	 * @param string[optional] $module The module wherin the file is located.
+	 * @param string[optional] $module The module wherein the file is located.
 	 * @param bool[optional] $minify Should the module be minified?
-	 * @param bool[optional] $parseThroughPHP Should the file be parsed by PHP?
 	 * @param bool[optional] $overwritePath Should we overwrite the full path?
 	 * @param bool[optional] $addTimestamp May we add a timestamp for caching purposes?
 	 */
-	public function addJS($file, $module = null, $minify = true, $parseThroughPHP = false, $overwritePath = false, $addTimestamp = false)
+	public function addJS($file, $module = null, $minify = true, $overwritePath = false, $addTimestamp = false)
 	{
 		$file = (string) $file;
 		$module = (string) ($module !== null) ? $module : $this->URL->getModule();
 		$minify = (bool) $minify;
-		$parseThroughPHP = (bool) $parseThroughPHP;
 		$overwritePath = (bool) $overwritePath;
 		$addTimestamp = (bool) $addTimestamp;
-
-		// validate parameters
-		if($parseThroughPHP && $overwritePath) throw new BackendException('parseThroughPHP and overwritePath can\'t be both true.');
 
 		// no minifying when debugging
 		if(SPOON_DEBUG) $minify = false;
 
-		// no minifying when parsing through PHP
-		if($parseThroughPHP) $minify = false;
-
 		// is the given path the real path?
 		if(!$overwritePath)
 		{
-			// should we parse the js-file? as in assign variables
-			if($parseThroughPHP) $file = '/backend/js.php?module=' . $module . '&amp;file=' . $file . '&amp;language=' . BL::getWorkingLanguage();
-
 			// we have to build the path, but core is a special one
-			elseif($module !== 'core') $file = '/backend/modules/' . $module . '/js/' . $file;
+			if($module !== 'core') $file = '/backend/modules/' . $module . '/js/' . $file;
 
 			// core is special because it isn't a real module
 			else $file = '/backend/core/js/' . $file;
@@ -169,6 +164,18 @@ class BackendHeader
 			// add to files
 			$this->jsFiles[] = array('file' => $file, 'add_timestamp' => $addTimestamp);
 		}
+	}
+
+	/**
+	 * Add data into the jsData
+	 *
+	 * @param string $module	The name of the module.
+	 * @param string $key		The key whereunder the value will be stored.
+	 * @param mixed $value		The value
+	 */
+	public function addJsData($module, $key, $value)
+	{
+		$this->jsData[$module][$key] = $value;
 	}
 
 	/**
@@ -329,5 +336,37 @@ class BackendHeader
 
 		// assign JS-files
 		$this->tpl->assign('jsFiles', $jsFiles);
+
+		// fetch preferred interface language
+		if(BackendAuthentication::getUser()->isAuthenticated())
+		{
+			$interfaceLanguage = (string) BackendAuthentication::getUser()->getSetting('interface_language');
+		}
+		else $interfaceLanguage = BL::getInterfaceLanguage();
+
+		// some default stuff
+		$this->jsData['debug'] = SPOON_DEBUG;
+		$this->jsData['site']['domain'] = SITE_DOMAIN;
+		$this->jsData['editor']['language'] = $interfaceLanguage;
+		$this->jsData['interface_language'] = $interfaceLanguage;
+
+		// is the user object filled?
+		if(BackendAuthentication::getUser()->isAuthenticated())
+		{
+			$this->jsData['editor']['language'] = (string) BackendAuthentication::getUser()->getSetting('interface_language');
+		}
+
+		// theme
+		if(BackendModel::getModuleSetting('core', 'theme') !== null)
+		{
+			$this->jsData['theme']['theme'] = BackendModel::getModuleSetting('core', 'theme');
+			$this->jsData['theme']['path'] = FRONTEND_PATH . '/themes/' . BackendModel::getModuleSetting('core', 'theme');
+			$this->jsData['theme']['has_css'] = (SpoonFile::exists(FRONTEND_PATH . '/themes/' . BackendModel::getModuleSetting('core', 'theme') . '/core/layout/css/screen.css'));
+			$this->jsData['theme']['has_editor_css'] = (SpoonFile::exists(FRONTEND_PATH . '/themes/' . BackendModel::getModuleSetting('core', 'theme') . '/core/layout/css/editor_content.css'));
+		}
+
+		// encode and add
+		$jsData = json_encode($this->jsData);
+		$this->tpl->assign('jsData', 'var jsData = ' . $jsData . ';' . "\n");
 	}
 }

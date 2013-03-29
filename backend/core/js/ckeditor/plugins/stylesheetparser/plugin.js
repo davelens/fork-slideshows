@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2003-2011, CKSource - Frederico Knabben. All rights reserved.
+Copyright (c) 2003-2012, CKSource - Frederico Knabben. All rights reserved.
 For licensing, see LICENSE.html or http://ckeditor.com/license
 */
 
@@ -65,15 +65,9 @@ For licensing, see LICENSE.html or http://ckeditor.com/license
 			if ( sheet.href && sheet.href.substr(0, 9) == 'chrome://' )
 				continue;
 
-			// @remark	added the try catch, otherwise an exception will be thrown, because cssRules isn't a supported property
-			try
-			{
-				var sheetRules = sheet.cssRules || sheet.rules;
-				for ( var j = 0; j < sheetRules.length; j++ )
-					aRules.push( sheetRules[ j ].selectorText );
-			}
-			catch(e) {
-			}
+			var sheetRules = sheet.cssRules || sheet.rules;
+			for ( var j = 0; j < sheetRules.length; j++ )
+				aRules.push( sheetRules[ j ].selectorText );
 		}
 
 		var aClasses = parseClasses( aRules, skipSelectors, validSelectors );
@@ -99,24 +93,45 @@ For licensing, see LICENSE.html or http://ckeditor.com/license
 	CKEDITOR.plugins.add( 'stylesheetparser',
 	{
 		requires: [ 'styles' ],
-		onLoad : function()
+		init : function( editor )
 		{
-			var obj = CKEDITOR.editor.prototype;
-			obj.getStylesSet = CKEDITOR.tools.override( obj.getStylesSet,  function( org )
-			{
-				return function( callback )
-				{
-					var self = this;
-					org.call( this, function( definitions )
-					{
-						// Rules that must be skipped
-						var skipSelectors = self.config.stylesheetParser_skipSelectors || ( /(^body\.|^\.)/i ),
-							// Rules that are valid
-							validSelectors = self.config.stylesheetParser_validSelectors || ( /\w+\.\w+/ );
+			var definitions, timer;
 
-						callback( ( self._.stylesDefinitions = definitions.concat( LoadStylesCSS( self.document.$, skipSelectors, validSelectors ) ) ) );
+			editor.on( 'mode', function( e )
+			{
+				// If there was a timeout pending, cancel it
+				if ( timer )
+					window.clearTimeout( timer );
+				timer = null;
+
+				if ( editor.mode != 'wysiwyg' )
+					return;
+
+				// Do this only once for non-full page
+				if ( !editor.config.fullPage )
+					e.removeListener();
+
+				// Use a delay before parsing the stylesheet to avoid errors with Firefox 4. #7784
+				// Safari requiress even greater delay
+				timer = window.setTimeout( function() {
+					editor.getStylesSet( function( stylesDefinitions )
+					{
+						// Use the original definitions or set them at this timer
+						definitions = definitions || stylesDefinitions;
+
+						// Rules that must be skipped
+						var skipSelectors = editor.config.stylesheetParser_skipSelectors || ( /(^body\.|^\.)/i ),
+							// Rules that are valid
+							validSelectors = editor.config.stylesheetParser_validSelectors || ( /\w+\.\w+/ );
+
+						// Add the styles found in the document
+						editor._.stylesDefinitions = definitions.concat( LoadStylesCSS( editor.document.$, skipSelectors, validSelectors ) );
+
+						// refresh the styles combo
+						var combo = editor.ui._.items[ 'Styles' ];
+						combo && combo.args[ 0 ].reset();
 					});
-				};
+				}, 1000 );
 			});
 
 		}
@@ -152,3 +167,4 @@ For licensing, see LICENSE.html or http://ckeditor.com/license
  * // Only add rules for p and span elements.
  * config.stylesheetParser_validSelectors = /\^(p|span)\.\w+/;
  */
+

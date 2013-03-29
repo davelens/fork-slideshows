@@ -46,7 +46,13 @@ class FrontendProfilesChangeEmail extends FrontendBaseBlock
 		}
 
 		// profile not logged in
-		else $this->redirect(FrontendNavigation::getURL(404));
+		else
+		{
+			$this->redirect(
+				FrontendNavigation::getURLForBlock('profiles', 'login') . '?queryString=' . FrontendNavigation::getURLForBlock('profiles', 'change_email'),
+				307
+			);
+		}
 	}
 
 	/**
@@ -64,8 +70,8 @@ class FrontendProfilesChangeEmail extends FrontendBaseBlock
 	private function loadForm()
 	{
 		$this->frm = new FrontendForm('updateEmail', null, null, 'updateEmailForm');
-		$this->frm->addPassword('password');
-		$this->frm->addText('email', $this->profile->getEmail());
+		$this->frm->addPassword('password')->setAttributes(array('required' => null));
+		$this->frm->addText('email', $this->profile->getEmail())->setAttributes(array('required' => null, 'type' => 'email'));
 	}
 
 	/**

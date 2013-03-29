@@ -7,7 +7,7 @@
 
     @author       Johan Ronsse <johan@netlash.com>
                   Yoni De Beule <yoni@netlash.com>
-                  Thomas Deceuninck <thomasdeceuninck@netlash.com>
+                  Thomas Deceuninck <thomas@fronto.be>
     @since        2.0
 
 */
@@ -379,3 +379,5 @@ input[type="submit"] {
 .multipleSelectWrapper ul li span { float: left; display: block; padding-right: 18px; line-height: 25px; }
 
 .placeholder { color: #AAA !important; }
+
+.forkForms .imageHolder { float: left; margin-right: 12px; padding: 0; }

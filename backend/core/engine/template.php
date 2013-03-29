@@ -80,7 +80,6 @@ class BackendTemplate extends SpoonTemplate
 		$this->parseLabels();
 		$this->parseLocale();
 		$this->parseVars();
-		$this->parseEditorLocale();
 
 		// parse headers
 		if(!$customHeaders)
@@ -175,7 +174,7 @@ class BackendTemplate extends SpoonTemplate
 	private function parseAuthentication()
 	{
 		// init var
-		$db = BackendModel::getDB();
+		$db = BackendModel::getContainer()->get('database');
 
 		// get allowed actions
 		$allowedActions = (array) $db->getRecords(
@@ -219,7 +218,7 @@ class BackendTemplate extends SpoonTemplate
 		// we should only assign constants if there are constants to assign
 		if(!empty($realConstants)) $this->assign($realConstants);
 
-		// we use some abbrviations and common terms, these should also be assigned
+		// we use some abbreviations and common terms, these should also be assigned
 		$this->assign('LANGUAGE', BackendLanguage::getWorkingLanguage());
 
 		if($this->URL instanceof BackendURL)
@@ -237,21 +236,12 @@ class BackendTemplate extends SpoonTemplate
 			// assign the authenticated users secret key
 			$this->assign('SECRET_KEY', BackendAuthentication::getUser()->getSecretKey());
 
-			// assign the authentiated users preferred interface language
+			// assign the authenticated users preferred interface language
 			$this->assign('INTERFACE_LANGUAGE', (string) BackendAuthentication::getUser()->getSetting('interface_language'));
 		}
 
 		// assign some variable constants (such as site-title)
 		$this->assign('SITE_TITLE', BackendModel::getModuleSetting('core', 'site_title_' . BackendLanguage::getWorkingLanguage(), SITE_DEFAULT_TITLE));
-
-		// theme
-		if(BackendModel::getModuleSetting('core', 'theme') !== null)
-		{
-			$this->assign('THEME', BackendModel::getModuleSetting('core', 'theme'));
-			$this->assign('THEME_PATH', FRONTEND_PATH . '/themes/' . BackendModel::getModuleSetting('core', 'theme'));
-			$this->assign('THEME_HAS_CSS', (SpoonFile::exists(FRONTEND_PATH . '/themes/' . BackendModel::getModuleSetting('core', 'theme') . '/core/layout/css/screen.css')));
-			$this->assign('THEME_HAS_EDITOR_CSS', (SpoonFile::exists(FRONTEND_PATH . '/themes/' . BackendModel::getModuleSetting('core', 'theme') . '/core/layout/css/editor_content.css')));
-		}
 	}
 
 	/**
@@ -260,29 +250,6 @@ class BackendTemplate extends SpoonTemplate
 	private function parseDebug()
 	{
 		$this->assign('debug', SPOON_DEBUG);
-	}
-
-	/**
-	 * Assign locale for the editor
-	 */
-	private function parseEditorLocale()
-	{
-		// fetch current active language
-		$language = BackendLanguage::getWorkingLanguage();
-
-		// convert to format used by ckeditor/ckfinder
-		switch($language)
-		{
-			case 'zh':
-				$language = 'zh-cn';
-				break;
-
-			default:
-				break;
-		}
-
-		// assign the editor language
-		$this->assign('EDITOR_LANGUAGE', $language);
 	}
 
 	/**
@@ -349,7 +316,7 @@ class BackendTemplate extends SpoonTemplate
 			foreach($realMessages as &$value) $value = addslashes($value);
 		}
 
-		// sort the arrays (just to make it look beautifull)
+		// sort the arrays (just to make it look beautiful)
 		ksort($realErrors);
 		ksort($realLabels);
 		ksort($realMessages);
@@ -534,7 +501,7 @@ class BackendTemplateModifiers
 
 	/**
 	 * Format a UNIX-timestamp as a date
-	 * syntac: {$var|formatdate}
+	 * syntax: {$var|formatdate}
 	 *
 	 * @param int $var The UNIX-timestamp to format.
 	 * @return string
@@ -607,7 +574,7 @@ class BackendTemplateModifiers
 	 *
 	 * @param string[optional] $var The string passed from the template.
 	 * @param int $min The minimum number.
-	 * @param int $max The maximim number.
+	 * @param int $max The maximum number.
 	 * @return int
 	 */
 	public static function random($var = null, $min, $max)

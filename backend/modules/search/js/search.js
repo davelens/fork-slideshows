@@ -1,7 +1,7 @@
 /**
  * All methods related to the search
  *
- * @author	Matthias Mullie <matthias@mullie.eu>
+ * @author	Matthias Mullie <forkcms@mullie.eu>
  */
 jsBackend.search =
 {
@@ -15,9 +15,9 @@ jsBackend.search =
 		{
 			$synonymBox.multipleTextbox(
 			{
-				emptyMessage: '{$msgNoSynonymsBox}',
-				addLabel: '{$lblAdd|ucfirst}',
-				removeLabel: '{$lblDeleteSynonym|ucfirst}'
+				emptyMessage: jsBackend.locale.msg('NoSynonymsBox'),
+				addLabel: utils.string.ucfirst(jsBackend.locale.lbl('Add')),
+				removeLabel: utils.string.ucfirst(jsBackend.locale.lbl('DeleteSynonym'))
 			});
 		}
 

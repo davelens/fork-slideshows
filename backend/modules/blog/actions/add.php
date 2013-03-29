@@ -13,7 +13,7 @@
  * @author Davy Hellemans <davy.hellemans@netlash.com>
  * @author Dave Lens <dave.lens@netlash.com>
  * @author Tijs Verkoyen <tijs@sumocoders.be>
- * @author Matthias Mullie <matthias@mullie.eu>
+ * @author Matthias Mullie <forkcms@mullie.eu>
  * @author Jelmer Snoeck <jelmer.snoeck@netlash.com>
  */
 class BackendBlogAdd extends BackendBaseActionAdd
@@ -148,14 +148,18 @@ class BackendBlogAdd extends BackendBaseActionAdd
 					// the image path
 					$imagePath = FRONTEND_FILES_PATH . '/blog/images';
 
-					// validate the image
+					// create folders if needed
+					if(!SpoonDirectory::exists($imagePath . '/source')) SpoonDirectory::create($imagePath . '/source');
+					if(!SpoonDirectory::exists($imagePath . '/128x128')) SpoonDirectory::create($imagePath . '/128x128');
+
+					// image provided?
 					if($this->frm->getField('image')->isFilled())
 					{
 						// build the image name
 						$item['image'] = $this->meta->getURL() . '.' . $this->frm->getField('image')->getExtension();
 
-						// upload the image
-						$this->frm->getField('image')->moveFile($imagePath . '/source/' . $item['image']);
+						// upload the image & generate thumbnails
+						$this->frm->getField('image')->generateThumbnails($imagePath, $item['image']);
 					}
 				}
 

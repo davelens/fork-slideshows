@@ -145,6 +145,7 @@ class CampaignMonitor
 	 * @param	string $URL						The base URL of your CreateSend site. e.g. http://example.createsend.com/.
 	 * @param	string $username				The username you use to login to Campaign Monitor.
 	 * @param	string $password				The password you use to login to Campaign Monitor.
+     * @param	int[optional] $timeOut			The default timeout
 	 * @param	string[optional] $clientId		The default client ID to use throughout the class.
 	 * @param	string[optional] $listId		The default list ID to use throughout the class.
 	 */
@@ -177,8 +178,8 @@ class CampaignMonitor
 	 * @param	string $email					The email address of the new subscriber.
 	 * @param	string $name					The name of the new subscriber. If the name is unknown, an empty string can be passed in.
 	 * @param	array[optional] $customFields	The custom fields for this subscriber in key/value pairs.
-	 * $param	bool[optional] $resubscribe		Subscribes an unsubscribed email address back to the list if this is true.
-	 * $param	string[optional] $listId		The list you want to add the subscriber to.
+	 * @param	bool[optional] $resubscribe		Subscribes an unsubscribed email address back to the list if this is true.
+	 * @param	string[optional] $listId		The list you want to add the subscriber to.
 	 */
 	public function addSubscriber($email, $name, $customFields = array(), $resubscribe = true, $listId = null)
 	{
@@ -259,12 +260,10 @@ class CampaignMonitor
 	 *
 	 * @return	string
 	 * @param	string $companyName		The client company name.
-	 * @param	string $contactName		The personal name of the principle contact for this client.
-	 * @param	string $email			An email address to which this client will be sent application-related emails.
 	 * @param	string $country			This client’s country.
 	 * @param	string $timezone		Client timezone for tracking and reporting data.
 	 */
-	public function createClient($companyName, $contactName, $email, $country, $timezone)
+	public function createClient($companyName, $country, $timezone)
 	{
 		// fetch the country list
 		$countries = $this->getCountries();
@@ -278,8 +277,6 @@ class CampaignMonitor
 
 		// set parameters
 		$parameters['CompanyName'] = (string) $companyName;
-		$parameters['ContactName'] = (string) $contactName;
-		$parameters['EmailAddress'] = (string) $email;
 		$parameters['Country'] = (string) $country;
 		$parameters['Timezone'] = (string) $timezone;
 
@@ -1051,7 +1048,6 @@ class CampaignMonitor
 		// reserve variable
 		$result = array();
 		$details = $record['BasicDetails'];
-		$access = $record['AccessDetails'];
 		$billing = $record['BillingDetails'];
 
 		// basic details
@@ -1062,10 +1058,6 @@ class CampaignMonitor
 		$result['email'] = $details['EmailAddress'];
 		$result['country'] = $details['Country'];
 		$result['timezone'] = $details['TimeZone'];
-
-		// access info
-		$result['username'] = empty($access['Username']) ? null : $access['Username'];
-		$result['access_level'] = empty($access['AccessLevel']) ? null : $access['AccessLevel'];
 
 		// billing info
 		$result['can_purchase_credits'] = $billing['CanPurchaseCredits'];
@@ -2019,13 +2011,11 @@ class CampaignMonitor
 	 *
 	 * @return	bool
 	 * @param	string $companyName			The client company name.
-	 * @param	string $contactName			The personal name of the principle contact for this client.
-	 * @param	string $email				An email address to which this client will be sent application-related emails.
 	 * @param	string $country				This client's country.
 	 * @param	string $timezone			Client timezone for tracking and reporting data.
 	 * @param	string[optional] $clientId	The client ID to update.
 	 */
-	public function updateClientBasics($companyName, $contactName, $email, $country, $timezone, $clientId = null)
+	public function updateClientBasics($companyName, $country, $timezone, $clientId = null)
 	{
 		// set ID
 		$clientId = empty($clientId) ? $this->getClientId() : $clientId;
@@ -2042,8 +2032,6 @@ class CampaignMonitor
 
 		// set parameters
 		$parameters['CompanyName'] = (string) $companyName;
-		$parameters['ContactName'] = (string) $contactName;
-		$parameters['EmailAddress'] = (string) $email;
 		$parameters['Country'] = (string) $country;
 		$parameters['Timezone'] = (string) $timezone;
 

@@ -2,7 +2,8 @@
  * Interaction for the analytics module
  *
  * @author	Annelies Vanextergem <annelies@netlash.com>
- * @author	Thomas Deceuninck <thomasdeceuninck@netlash.com>
+ * @author	Thomas Deceuninck <thomas@fronto.be>
+ * @author	Tijs Verkoyen <tijs@sumocoders.be>
  */
 jsBackend.analytics =
 {
@@ -43,8 +44,7 @@ jsBackend.analytics.charts =
 					symbolPadding: 12,
 					symbolWidth: 10,
 					itemStyle: { cursor: 'pointer', color: '#000', lineHeight: '18px' },
-					itemHoverStyle: { color: '#666' },
-					style: { right: '0', top: '0', bottom: 'auto', left: 'auto' }
+					itemHoverStyle: { color: '#666' }
 				}
 			});
 		}
@@ -108,7 +108,7 @@ jsBackend.analytics.chartPieChart =
 					showInLegend: true
 				}
 			},
-			legend: { style: { right: '10px' } },
+			legend: { align: 'right' },
 			series: [ {type: 'pie', data: pieChartData } ]
 		});
 	},
@@ -175,7 +175,8 @@ jsBackend.analytics.chartDoubleMetricPerDay =
 				column: { pointPadding: 0.2, borderWidth: 0 },
 				series: { fillOpacity: 0.3 }
 			},
-			series: [{name: metric1Name, data: metric1Data, type: 'area' }, { name: metric2Name, data: metric2Data }]
+			series: [{name: metric1Name, data: metric1Data, type: 'area' }, { name: metric2Name, data: metric2Data }],
+			legend: { layout: 'horizontal', verticalAlign: 'top' }
 		});
 	},
 
@@ -234,7 +235,8 @@ jsBackend.analytics.chartSingleMetricPerDay =
 				column: { pointPadding: 0.2, borderWidth: 0 },
 				series: { fillOpacity: 0.3 }
 			},
-			series: [{ name: singleMetricName, data: singleMetricData }]
+			series: [{ name: singleMetricName, data: singleMetricData }],
+			legend: { layout: 'horizontal', verticalAlign: 'top' }
 		});
 	},
 
@@ -299,7 +301,8 @@ jsBackend.analytics.chartWidget =
 				column: { pointPadding: 0.2, borderWidth: 0 },
 				series: { fillOpacity: 0.3 }
 			},
-			series: [ { name: metric1Name, data: metric1Data, type: 'area' }, { name: metric2Name, data: metric2Data } ]
+			series: [ { name: metric1Name, data: metric1Data, type: 'area' }, { name: metric2Name, data: metric2Data } ],
+			legend: { enabled: false }
 		});
 	},
 
@@ -327,8 +330,8 @@ jsBackend.analytics.loading =
 			$longLoader.show();
 
 			// get the page to get data for
-			var page = $('#page').html();
-			var identifier = $('#identifier').html();
+			var page = jsBackend.data.get('analytics.data.page');
+			var identifier = jsBackend.data.get('analytics.data.identifier');
 
 			// save data
 			jsBackend.analytics.loading.page = page;
@@ -361,14 +364,14 @@ jsBackend.analytics.loading =
 			success: function(data, textStatus)
 			{
 				// redirect
-				if(data.data.status == 'unauthorized') { window.location = $('#settingsUrl').html(); }
+				if(data.data.status == 'unauthorized') { window.location = jsBackend.data.get('analytics.data.settingsUrl'); }
 
 				if(data.code == 200)
 				{
 					// get redirect url
 					var url = document.location.protocol +'//'+ document.location.host;
-					url += $('#redirect').html();
-					if($('#redirectGet').html() != '') url += '&' + $('#redirectGet').html();
+					if(jsBackend.data.exists('analytics.data.redirect')) url += jsBackend.data.get('analytics.data.redirect');
+					if(jsBackend.data.exists('analytics.data.redirectGet')) url += '&' + jsBackend.data.get('analytics.data.redirectGet');
 
 					// redirect
 					if(data.data.status == 'done') window.location = url;

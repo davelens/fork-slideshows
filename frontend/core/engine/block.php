@@ -12,7 +12,8 @@
  *
  * @author Tijs Verkoyen <tijs@sumocoders.be>
  * @author Dieter Vanden Eynde <dieter@dieterve.be>
- * @author Matthias Mullie <matthias@mullie.eu>
+ * @author Matthias Mullie <forkcms@mullie.eu>
+ * @author Dave Lens <dave.lens@wijs.be>
  */
 class FrontendBlockExtra extends FrontendBaseObject
 {
@@ -110,6 +111,7 @@ class FrontendBlockExtra extends FrontendBaseObject
 
 		// create action-object
 		$this->object = new $actionClassName($this->getModule(), $this->getAction(), $this->getData());
+		$this->object->setKernel($this->getKernel());
 
 		// validate if the execute-method is callable
 		if(!is_callable(array($this->object, 'execute'))) throw new FrontendException('The actionfile should contain a callable method "execute".');
@@ -171,7 +173,7 @@ class FrontendBlockExtra extends FrontendBaseObject
 	 */
 	public function getContent()
 	{
-		// set path to template if the widget didnt return any data
+		// set path to template if the widget didn't return any data
 		if($this->output === null) return $this->object->getContent();
 
 		// return possible output
@@ -241,7 +243,7 @@ class FrontendBlockExtra extends FrontendBaseObject
 
 	/**
 	 * Load the config file for the requested block.
-	 * In the config file we have to find dissabled actions, the constructor will read the folder and set possible actions
+	 * In the config file we have to find disabled actions, the constructor will read the folder and set possible actions
 	 * Other configurations will also be stored in it.
 	 */
 	public function loadConfig()
@@ -324,7 +326,7 @@ class FrontendBlockExtra extends FrontendBaseObject
  *
  * @author Tijs Verkoyen <tijs@sumocoders.be>
  * @author Dieter Vanden Eynde <dieter@dieterve.be>
- * @author Matthias Mullie <matthias@mullie.eu>
+ * @author Matthias Mullie <forkcms@mullie.eu>
  */
 class FrontendBlockWidget extends FrontendBaseObject
 {
@@ -400,6 +402,9 @@ class FrontendBlockWidget extends FrontendBaseObject
 		// build path to the module
 		$frontendModulePath = FRONTEND_MODULES_PATH . '/' . $this->getModule();
 
+		// when including a widget from the template modifier, this wasn't checked yet
+		if(!file_exists($frontendModulePath . '/widgets/' . $this->getAction() . '.php')) throw new FrontendException('The actionfile is not present');
+
 		// require the config file, we know it is there because we validated it before (possible actions are defined by existance off the file).
 		require_once $frontendModulePath . '/widgets/' . $this->getAction() . '.php';
 
@@ -408,6 +413,7 @@ class FrontendBlockWidget extends FrontendBaseObject
 
 		// create action-object
 		$this->object = new $actionClassName($this->getModule(), $this->getAction(), $this->getData());
+		$this->object->setKernel($this->getKernel());
 
 		// validate if the execute-method is callable
 		if(!is_callable(array($this->object, 'execute'))) throw new FrontendException('The actionfile should contain a callable method "execute".');
@@ -438,7 +444,7 @@ class FrontendBlockWidget extends FrontendBaseObject
 	 */
 	public function getContent()
 	{
-		// set path to template if the widget didnt return any data
+		// set path to template if the widget didn't return any data
 		if($this->output === null) return $this->object->getContent();
 
 		// return possible output
@@ -478,7 +484,7 @@ class FrontendBlockWidget extends FrontendBaseObject
 
 	/**
 	 * Load the config file for the requested block.
-	 * In the config file we have to find dissabled actions, the constructor will read the folder and set possible actions
+	 * In the config file we have to find disabled actions, the constructor will read the folder and set possible actions
 	 * Other configurations will be stored in it also.
 	 */
 	public function loadConfig()

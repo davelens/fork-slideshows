@@ -12,7 +12,7 @@
  *
  * @author Davy Hellemans <davy.hellemans@netlash.com>
  * @author Tijs Verkoyen <tijs@sumocoders.be>
- * @author Matthias Mullie <matthias@mullie.eu>
+ * @author Matthias Mullie <forkcms@mullie.eu>
  */
 class BlogInstaller extends ModuleInstaller
 {
@@ -108,7 +108,6 @@ class BlogInstaller extends ModuleInstaller
 		$this->setActionRights(1, 'blog', 'edit_category');
 		$this->setActionRights(1, 'blog', 'edit_comment');
 		$this->setActionRights(1, 'blog', 'edit');
-		$this->setActionRights(1, 'blog', 'import_blogger');
 		$this->setActionRights(1, 'blog', 'index');
 		$this->setActionRights(1, 'blog', 'mass_comment_action');
 		$this->setActionRights(1, 'blog', 'settings');
@@ -119,7 +118,7 @@ class BlogInstaller extends ModuleInstaller
 		// set navigation
 		$navigationModulesId = $this->setNavigation(null, 'Modules');
 		$navigationBlogId = $this->setNavigation($navigationModulesId, 'Blog');
-		$this->setNavigation($navigationBlogId, 'Articles', 'blog/index', array('blog/add',	'blog/edit', 'blog/import_blogger'));
+		$this->setNavigation($navigationBlogId, 'Articles', 'blog/index', array('blog/add',	'blog/edit'));
 		$this->setNavigation($navigationBlogId, 'Comments', 'blog/comments', array('blog/edit_comment'));
 		$this->setNavigation($navigationBlogId, 'Categories', 'blog/categories', array('blog/add_category',	'blog/edit_category'));
 
@@ -165,11 +164,13 @@ class BlogInstaller extends ModuleInstaller
 			$this->setSetting('blog', 'rss_description_' . $language, '');
 
 			// check if a page for blog already exists in this language
-			if(!(bool) $this->getDB()->getVar('SELECT COUNT(p.id)
-												FROM pages AS p
-												INNER JOIN pages_blocks AS b ON b.revision_id = p.revision_id
-												WHERE b.extra_id = ? AND p.language = ?',
-												array($blogId, $language)))
+			if(!(bool) $this->getDB()->getVar(
+				'SELECT 1
+				 FROM pages AS p
+				 INNER JOIN pages_blocks AS b ON b.revision_id = p.revision_id
+				 WHERE b.extra_id = ? AND p.language = ?
+				 LIMIT 1',
+				array($blogId, $language)))
 			{
 				$this->insertPage(
 					array('title' => 'Blog', 'language' => $language),
@@ -197,7 +198,12 @@ class BlogInstaller extends ModuleInstaller
 		$db = $this->getDB();
 
 		// check if blogposts already exist in this language
-		if(!(bool) $db->getVar('SELECT COUNT(id) FROM blog_posts WHERE language = ?', array($language)))
+		if(!(bool) $db->getVar(
+			'SELECT 1
+			 FROM blog_posts
+			 WHERE language = ?
+			 LIMIT 1',
+			array($language)))
 		{
 			// insert sample blogpost 1
 			$db->insert('blog_posts', array(

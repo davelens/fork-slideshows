@@ -1,8 +1,6 @@
 /**
- * Javascript for building forms
- *
- * @author	Dieter Vanden Eynde <dieter@netlash.com>
- * @author	Thomas Deceuninck <thomasdeceuninck@netlash.com>
+ * @author	Dieter Vanden Eynde <dieter.vandeneynde@wijs.be>
+ * @author	Thomas Deceuninck <thomas@fronto.be>
  * @author	Tijs Verkoyen <tijs@sumocoders.be>
  */
 jsBackend.formBuilder =
@@ -36,9 +34,9 @@ jsBackend.formBuilder =
 
 		$('#email').multipleTextbox(
 		{
-			emptyMessage: '{$msgNoEmailaddresses}',
-			addLabel: '{$lblCoreAdd|ucfirst}',
-			removeLabel: '{$lblDelete|ucfirst}',
+			emptyMessage: jsBackend.locale.msg('NoEmailaddresses'),
+			addLabel: utils.string.ucfirst(jsBackend.locale.lbl('Add', 'core')),
+			removeLabel: utils.string.ucfirst(jsBackend.locale.lbl('Delete')),
 			canAddNew: true
 		});
 	},
@@ -117,7 +115,7 @@ jsBackend.formBuilder.fields =
 				// make the call
 				$.ajax(
 				{
-					data: $.extend(jsBackend.formBuilder.fields.paramsDelete,
+					data: $.extend({}, jsBackend.formBuilder.fields.paramsDelete,
 					{
 						form_id: jsBackend.formBuilder.formId,
 						field_id: id
@@ -172,44 +170,49 @@ jsBackend.formBuilder.fields =
 					modal: true,
 					width: 400,
 					buttons:
-					{
-						'{$lblSave|ucfirst}': function()
+					[
 						{
-							// save/validate by type
-							switch(id)
+							text: utils.string.ucfirst(jsBackend.locale.lbl('Save')),
+							click: function()
 							{
-								case 'textboxDialog':
-									jsBackend.formBuilder.fields.saveTextbox();
-									break;
-								case 'textareaDialog':
-									jsBackend.formBuilder.fields.saveTextarea();
-									break;
-								case 'headingDialog':
-									jsBackend.formBuilder.fields.saveHeading();
-									break;
-								case 'paragraphDialog':
-									jsBackend.formBuilder.fields.saveParagraph();
-									break;
-								case 'submitDialog':
-									jsBackend.formBuilder.fields.saveSubmit();
-									break;
-								case 'dropdownDialog':
-									jsBackend.formBuilder.fields.saveDropdown();
-									break;
-								case 'radiobuttonDialog':
-									jsBackend.formBuilder.fields.saveRadiobutton();
-									break;
-								case 'checkboxDialog':
-									jsBackend.formBuilder.fields.saveCheckbox();
-									break;
+								// save/validate by type
+								switch(id)
+								{
+									case 'textboxDialog':
+										jsBackend.formBuilder.fields.saveTextbox();
+										break;
+									case 'textareaDialog':
+										jsBackend.formBuilder.fields.saveTextarea();
+										break;
+									case 'headingDialog':
+										jsBackend.formBuilder.fields.saveHeading();
+										break;
+									case 'paragraphDialog':
+										jsBackend.formBuilder.fields.saveParagraph();
+										break;
+									case 'submitDialog':
+										jsBackend.formBuilder.fields.saveSubmit();
+										break;
+									case 'dropdownDialog':
+										jsBackend.formBuilder.fields.saveDropdown();
+										break;
+									case 'radiobuttonDialog':
+										jsBackend.formBuilder.fields.saveRadiobutton();
+										break;
+									case 'checkboxDialog':
+										jsBackend.formBuilder.fields.saveCheckbox();
+										break;
+								}
 							}
 						},
-						'{$lblCancel|ucfirst}': function()
 						{
-							$(this).dialog('close');
+							text: utils.string.ucfirst(jsBackend.locale.lbl('Cancel')),
+							click: function()
+							{
+								$(this).dialog('close');
+							}
 						}
-					 },
-
+					],
 					// set focus on first input field
 					open: function(e)
 					{
@@ -219,9 +222,9 @@ jsBackend.formBuilder.fields =
 							$('input#dropdownValues').multipleTextbox(
 							{
 								splitChar: '|',
-								emptyMessage: '{$msgNoValues}',
-								addLabel: '{$lblAdd|ucfirst}',
-								removeLabel: '{$lblDelete|ucfirst}',
+								emptyMessage: jsBackend.locale.msg('NoValues'),
+								addLabel: utils.string.ucfirst(jsBackend.locale.lbl('Add')),
+								removeLabel: utils.string.ucfirst(jsBackend.locale.lbl('Delete')),
 								showIconOnly: true,
 								afterBuild: jsBackend.formBuilder.fields.multipleTextboxCallback
 							});
@@ -231,9 +234,9 @@ jsBackend.formBuilder.fields =
 							$('input#radiobuttonValues').multipleTextbox(
 							{
 								splitChar: '|',
-								emptyMessage: '{$msgNoValues}',
-								addLabel: '{$lblAdd|ucfirst}',
-								removeLabel: '{$lblDelete|ucfirst}',
+								emptyMessage: jsBackend.locale.msg('NoValues'),
+								addLabel: utils.string.ucfirst(jsBackend.locale.lbl('Add')),
+								removeLabel: utils.string.ucfirst(jsBackend.locale.lbl('Delete')),
 								showIconOnly: true,
 								afterBuild: jsBackend.formBuilder.fields.multipleTextboxCallback
 							});
@@ -243,9 +246,9 @@ jsBackend.formBuilder.fields =
 							$('input#checkboxValues').multipleTextbox(
 							{
 								splitChar: '|',
-								emptyMessage: '{$msgNoValues}',
-								addLabel: '{$lblAdd|ucfirst}',
-								removeLabel: '{$lblDelete|ucfirst}',
+								emptyMessage: jsBackend.locale.msg('NoValues'),
+								addLabel: utils.string.ucfirst(jsBackend.locale.lbl('Add')),
+								removeLabel: utils.string.ucfirst(jsBackend.locale.lbl('Delete')),
 								showIconOnly: true,
 								afterBuild: jsBackend.formBuilder.fields.multipleTextboxCallback
 							});
@@ -311,14 +314,14 @@ jsBackend.formBuilder.fields =
 				// make ajax call
 				$.ajax(
 				{
-					data: $.extend(jsBackend.formBuilder.fields.paramsSequence,
+					data: $.extend({}, jsBackend.formBuilder.fields.paramsSequence,
 					{
 						form_id: jsBackend.formBuilder.formId,
 						new_id_sequence: newIdSequence.join('|')
 					}),
 					success: function(data, textStatus)
 					{
-						// not a succes so revert the changes
+						// not a success so revert the changes
 						if(data.code != 200)
 						{
 							// revert
@@ -367,7 +370,7 @@ jsBackend.formBuilder.fields =
 				// make the call
 				$.ajax(
 				{
-					data: $.extend(jsBackend.formBuilder.fields.paramsGet,
+					data: $.extend({}, jsBackend.formBuilder.fields.paramsGet,
 					{
 						form_id: jsBackend.formBuilder.formId,
 						field_id: id
@@ -719,7 +722,7 @@ jsBackend.formBuilder.fields =
 		// make the call
 		$.ajax(
 		{
-			data: $.extend(jsBackend.formBuilder.fields.paramsSave,
+			data: $.extend({}, jsBackend.formBuilder.fields.paramsSave,
 			{
 				form_id: jsBackend.formBuilder.formId,
 				field_id: fieldId,
@@ -788,7 +791,7 @@ jsBackend.formBuilder.fields =
 		// make the call
 		$.ajax(
 		{
-			data: $.extend(jsBackend.formBuilder.fields.paramsSave,
+			data: $.extend({}, jsBackend.formBuilder.fields.paramsSave,
 			{
 				form_id: jsBackend.formBuilder.formId,
 				field_id: fieldId,
@@ -853,7 +856,7 @@ jsBackend.formBuilder.fields =
 		// make the call
 		$.ajax(
 		{
-			data: $.extend(jsBackend.formBuilder.fields.paramsSave,
+			data: $.extend({}, jsBackend.formBuilder.fields.paramsSave,
 			{
 				form_id: jsBackend.formBuilder.formId,
 				field_id: fieldId,
@@ -911,7 +914,7 @@ jsBackend.formBuilder.fields =
 		// make the call
 		$.ajax(
 		{
-			data: $.extend(jsBackend.formBuilder.fields.paramsSave,
+			data: $.extend({}, jsBackend.formBuilder.fields.paramsSave,
 			{
 				form_id: jsBackend.formBuilder.formId,
 				field_id: fieldId,
@@ -973,7 +976,7 @@ jsBackend.formBuilder.fields =
 		// make the call
 		$.ajax(
 		{
-			data: $.extend(jsBackend.formBuilder.fields.paramsSave,
+			data: $.extend({}, jsBackend.formBuilder.fields.paramsSave,
 			{
 				form_id: jsBackend.formBuilder.formId,
 				field_id: fieldId,
@@ -1038,7 +1041,7 @@ jsBackend.formBuilder.fields =
 		// make the call
 		$.ajax(
 		{
-			data: $.extend(jsBackend.formBuilder.fields.paramsSave,
+			data: $.extend({}, jsBackend.formBuilder.fields.paramsSave,
 			{
 				form_id: jsBackend.formBuilder.formId,
 				field_id: fieldId,
@@ -1102,7 +1105,7 @@ jsBackend.formBuilder.fields =
 		// make the call
 		$.ajax(
 		{
-			data: $.extend(jsBackend.formBuilder.fields.paramsSave,
+			data: $.extend({}, jsBackend.formBuilder.fields.paramsSave,
 			{
 				form_id: jsBackend.formBuilder.formId,
 				field_id: fieldId,
@@ -1175,7 +1178,7 @@ jsBackend.formBuilder.fields =
 		// make the call
 		$.ajax(
 		{
-			data: $.extend(jsBackend.formBuilder.fields.paramsSave,
+			data: $.extend({}, jsBackend.formBuilder.fields.paramsSave,
 			{
 				form_id: jsBackend.formBuilder.formId,
 				field_id: fieldId,

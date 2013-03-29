@@ -38,26 +38,31 @@
 		var twitterLoaded = false;
 		var linkedInLoaded = false;
 		var googlePlusLoaded = false;
+		var pinterestLoaded = false;
 
 		// define defaults
 		var defaults =
 		{
 			debug: false,
 			default_image: document.location.protocol + '//' + document.location.host + '/apple-touch-icon.png',
-			sequence: ['facebook', 'twitter', 'netlog', 'linkedin', 'digg', 'delicious', 'googleplus'],
+			sequence: ['facebook', 'twitter', 'netlog', 'linkedin', 'digg', 'delicious', 'googleplus', 'pinterest'],
 			isDropdown: true,
-
+		}
+		var settings =
+		{
 			delicious: { name: 'delicious', show: true, label: 'Delicious'},
 			digg: { name: 'digg', show: true, label: 'Digg' },
 			facebook: { name: 'facebook', show: true, width: 90, verb: 'like', colorScheme: 'light', font : 'arial' },
 			linkedin: { name: 'linkedin', show: true, label: 'LinkedIn' },
 			netlog: { name: 'netlog', show: true, label: 'Netlog' },
 			twitter: { name: 'twitter', show: true, label: 'tweet' },
-			googleplus: { name: 'googleplus', show: true, label: 'Google +1' }
+			googleplus: { name: 'googleplus', show: true, label: 'Google +1' },
+			pinterest: { name: 'pinterest', show: true, label: 'Pin it', countLayout: 'horizontal' } // possible values for countLayout: horizontal/vertical/none
 		};
 
 		// extend options
 		var options = $.extend(defaults, options);
+		options = $.extend(true, settings, options);
 
 		return this.each(function()
 		{
@@ -181,9 +186,7 @@
 							}
 
 							// build url
-							var url = 'http://www.linkedin.com/shareArticle?mini=true&url=' + encodeURIComponent(link);
-							if(title != '') url += '&title=' + title;
-							if(description != '') url += '&summary=' + description;
+							var url = encodeURIComponent(link);
 
 							// add html
 							html += '<li class="shareMenuLinkedin">' +
@@ -242,7 +245,7 @@
 							html += ' >' + options.twitter.label  + '</a>';
 							html += '</li>';
 						break;
-						
+
 						// google plus
 						case 'googleplus':
 							if(!googlePlusLoaded)
@@ -252,27 +255,69 @@
 								{
 									if($(this).attr('src') == 'https://apis.google.com/js/plusone.js') googlePlusLoaded = true;
 								});
-								
+
 								// not loaded?
 								if(!googlePlusLoaded)
 								{
 									// create the script tag
 									var script = document.createElement('script')
 									script.src = 'https://apis.google.com/js/plusone.js';
-									
+
 									// add into head
 									$('head').after(script);
-									
+
 									// reset var
 									googlePlusLoaded = true;
 								}
 							}
-							
+
 							// build & add html
-							html += '<li class="shareMenuTwitter">' +
+							html += '<li class="shareMenuGoogleplus">' +
 							'	<div class="g-plusone" data-size="medium" data-href="' + link + '"></div>';
 							html += '</li>';
-							break;
+						break;
+						
+						// pinterest
+						case 'pinterest':
+							if(image != '')
+							{
+								if(!pinterestLoaded)
+								{
+									// loop all script to check if the google plus widget is already loaded
+									$('script').each(function()
+									{
+										if($(this).attr('src') == '//assets.pinterest.com/js/pinit.js') pinterestLoaded = true;
+									});
+	
+									// not loaded?
+									if(!pinterestLoaded)
+									{
+										// create the script tag
+										var script = document.createElement('script')
+										script.src = '//assets.pinterest.com/js/pinit.js';
+	
+										// add into head
+										$('head').after(script);
+	
+										// reset var
+										pinterestLoaded = true;
+									}
+									
+									if(typeof options[options.sequence[i]].countLayout != 'undefined') countLayout = options[options.sequence[i]].countLayout;
+									else countLayout = 'none';
+									if(countLayout != 'horizontal' || countLayout != 'vertical' || countLayout != 'none') countLayout = 'none';
+
+									// build & add html
+									html += '<li class="shareMenuPinterest">' +
+									'	<a href="http://pinterest.com/pin/create/button/?url=' + encodeURIComponent(link) + 
+										'&media=' + encodeURIComponent(image) + 
+										'&description=' + encodeURIComponent(description) + 
+										'" class="pin-it-button" count-layout="' + countLayout + '">' +
+										'<img border="0" src="//assets.pinterest.com/images/PinExt.png" title="Pin It" /></a>';
+									html += '</li>';
+								}
+							}
+						break;
 					}
 				}
 			}

@@ -10,7 +10,7 @@
 /**
  * This is the edit synonym action, it will display a form to edit an existing synonym.
  *
- * @author Matthias Mullie <matthias@mullie.eu>
+ * @author Matthias Mullie <forkcms@mullie.eu>
  */
 class BackendSearchEditSynonym extends BackendBaseActionEdit
 {
@@ -95,7 +95,7 @@ class BackendSearchEditSynonym extends BackendBaseActionEdit
 				$item['synonym'] = $this->frm->getField('synonym')->getValue();
 				$item['language'] = BL::getWorkingLanguage();
 
-				// upate the item
+				// update the item
 				BackendSearchModel::updateSynonym($item);
 
 				// trigger event

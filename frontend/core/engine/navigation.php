@@ -12,7 +12,7 @@
  *
  * @author Tijs Verkoyen <tijs@sumocoders.be>
  * @author Dieter Vanden Eynde <dieter@dieterve.be>
- * @author Matthias Mullie <matthias@mullie.eu>
+ * @author Matthias Mullie <forkcms@mullie.eu>
  * @author Jelmer Snoeck <jelmer.snoeck@netlash.com>
  */
 class FrontendNavigation extends FrontendBaseObject
@@ -103,7 +103,7 @@ class FrontendNavigation extends FrontendBaseObject
 		// loop depths
 		foreach($navigation as $parent)
 		{
-			// no availabe, skip this element
+			// no available, skip this element
 			if(!isset($parent[$pageId])) continue;
 
 			// get keys
@@ -302,8 +302,15 @@ class FrontendNavigation extends FrontendBaseObject
 				if($page['no_follow']) $navigation[$type][$parentId][$id]['nofollow'] = true;
 				else $navigation[$type][$parentId][$id]['nofollow'] = false;
 
-				// has children and is desired?
-				if(isset($navigation[$type][$page['page_id']]) && $page['page_id'] != 1 && ($depth == null || $depthCounter + 1 <= $depth)) $navigation[$type][$parentId][$id]['children'] = self::getNavigationHTML($type, $page['page_id'], $depth, $excludeIds, $tpl, $depthCounter + 1);
+				// meta subpages have the "page" type
+				if($type == 'meta') $subType = 'page';
+				else $subType = $type;
+
+				// fetch children if needed
+				if(isset($navigation[$subType][$page['page_id']]) && $page['page_id'] != 1 && ($depth == null || $depthCounter + 1 <= $depth))
+				{
+					$navigation[$type][$parentId][$id]['children'] = self::getNavigationHTML($subType, $page['page_id'], $depth, $excludeIds, $tpl, $depthCounter + 1);
+				}
 				else $navigation[$type][$parentId][$id]['children'] = false;
 
 				// add parent id
@@ -339,8 +346,8 @@ class FrontendNavigation extends FrontendBaseObject
 	/**
 	 * Get a menuId for an specified URL
 	 *
-	 * @param  string $URL The URL wherfor you want a pageID.
-	 * @param string[optional] $language The language wherefor the pageID should be retrieved, if not provided we will load the language that was provided in the URL.
+	 * @param  string $URL The URL wherefore you want a pageID.
+	 * @param string[optional] $language The language wherefore the pageID should be retrieved, if not provided we will load the language that was provided in the URL.
 	 * @return int
 	 */
 	public static function getPageId($URL, $language = null)
@@ -365,7 +372,7 @@ class FrontendNavigation extends FrontendBaseObject
 	/**
 	 * Get more info about a page
 	 *
-	 * @param int $pageId The pageID wherefor you want more information.
+	 * @param int $pageId The pageID wherefore you want more information.
 	 * @return mixed
 	 */
 	public static function getPageInfo($pageId)
@@ -391,7 +398,7 @@ class FrontendNavigation extends FrontendBaseObject
 						$return['parent_id'] = $parentId;
 
 						// return
-						return $return;;
+						return $return;
 					}
 				}
 			}
@@ -419,7 +426,7 @@ class FrontendNavigation extends FrontendBaseObject
 		// get the menuItems
 		$keys = self::getKeys($language);
 
-		// get the URL, if it doens't exist return 404
+		// get the URL, if it doesn't exist return 404
 		if(!isset($keys[$pageId])) return self::getURL(404, $language);
 
 		// add URL
@@ -432,8 +439,8 @@ class FrontendNavigation extends FrontendBaseObject
 	/**
 	 * Get the URL for a give module & action combination
 	 *
-	 * @param string $module The module wherefor the URL should be build.
-	 * @param string[optional] $action The specific action wherefor the URL shoul be build.
+	 * @param string $module The module wherefore the URL should be build.
+	 * @param string[optional] $action The specific action wherefore the URL should be build.
 	 * @param string[optional] $language The language wherein the URL should be retrieved, if not provided we will load the language that was provided in the URL.
 	 * @return string
 	 */
@@ -482,7 +489,7 @@ class FrontendNavigation extends FrontendBaseObject
 			}
 		}
 
-		// pageId stull null?
+		// pageId still null?
 		if($pageIdForURL === null) return self::getURL(404, $language);
 
 		// build URL

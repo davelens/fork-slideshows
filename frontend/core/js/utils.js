@@ -2,6 +2,7 @@
  * Utilities; useful scripts
  *
  * @author	Tijs Verkoyen <tijs@sumocoders.be>
+ * @author	Thomas Deceuninck <thomas@fronto.be>
  */
 var utils =
 {
@@ -83,6 +84,15 @@ utils.cookies =
 
 		// fallback
 		return null;
+	},
+	
+	setCookie: function(name, value, days)
+	{
+		if(typeof days == 'undefined') days = 7;
+		
+		var expireDate = new Date();
+		expireDate.setDate(expireDate.getDate() + days);
+		document.cookie = name + '=' + escape(value) + ';expires=' + expireDate.toUTCString() + ';path=/';
 	}
 }
 
@@ -149,14 +159,14 @@ utils.form =
 		var regexp = /^((http|ftp|https):\/{2})?(([0-9a-zA-Z_-]+\.)+[0-9a-zA-Z]+)((:[0-9]+)?)((\/([~0-9a-zA-Z\#%@\.\/_-]+)?(\?[0-9a-zA-Z%@\/&=_-]+)?)?)$/i;
 		return regexp.test(element.val());
 	}
-},
+}
 
 /**
  * Functions related to strings
  *
  * @author	Tijs Verkoyen <tijs@sumocoders.be>
  * @author	Dieter Vanden Eynde <dieter@netlash.com>
- * @author	Matthias Mullie <matthias@mullie.eu>
+ * @author	Matthias Mullie <forkcms@mullie.eu>
  */
 utils.string =
 {
@@ -247,6 +257,41 @@ utils.string =
 	},
 
 	/**
+	 * Sprintf replaces all arguments that occur in the string (%1$s, %2$s, ...)
+	 *
+	 * @return	string
+	 * @param	string value
+	 * @params	string arguments
+	 */
+	sprintf: function(value)
+	{
+		if(arguments.length < 2) return value;
+		else
+		{
+			// replace $ symbol first, because our RegExp won't except this symbol
+			value = value.replace(/\$s/g, 'Ss');
+
+			// find all variables and replace them
+			for(var i = 1; i < arguments.length; i++)
+			{
+				value = utils.string.replaceAll(value, '%' + i + 'Ss', arguments[i]);
+			}
+		}
+
+		return value;
+	},
+
+	/**
+	 * Strip HTML tags
+	 *
+	 * @return	string
+	 */
+	stripTags: function(value)
+	{
+		return value.replace(/<[^>]*>/ig, '');
+	},
+
+	/**
 	 * Strip whitespace from the beginning and end of a string
 	 *
 	 * @return	string
@@ -325,6 +370,17 @@ utils.string =
 
 		// trim - signs
 		return utils.string.trim(value, '-');
+	},
+
+	/**
+	 * Adds a capital letter to a string
+	 *
+	 * @return	string
+	 * @param	string $value
+	 */
+	ucfirst: function(value)
+	{
+		return value.charAt(0).toUpperCase() + value.slice(1);
 	},
 
 	/**

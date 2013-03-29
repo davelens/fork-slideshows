@@ -39,7 +39,14 @@ class FrontendProfilesLogin extends FrontendBaseBlock
 		}
 
 		// profile already logged in
-		else $this->redirect(SITE_URL);
+		else
+		{
+			// querystring
+			$queryString = urldecode(SpoonFilter::getGetValue('queryString', null, SITE_URL));
+
+			// redirect
+			$this->redirect($queryString);
+		}
 	}
 
 	/**
@@ -48,8 +55,8 @@ class FrontendProfilesLogin extends FrontendBaseBlock
 	private function loadForm()
 	{
 		$this->frm = new FrontendForm('login', null, null, 'loginForm');
-		$this->frm->addText('email');
-		$this->frm->addPassword('password');
+		$this->frm->addText('email')->setAttributes(array('required' => null, 'type' => 'email'));
+		$this->frm->addPassword('password')->setAttributes(array('required' => null));
 		$this->frm->addCheckbox('remember', true);
 	}
 

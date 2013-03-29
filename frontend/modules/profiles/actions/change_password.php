@@ -46,7 +46,13 @@ class FrontendProfilesChangePassword extends FrontendBaseBlock
 		}
 
 		// profile not logged in
-		else $this->redirect(FrontendNavigation::getURL(404));
+		else
+		{
+			$this->redirect(
+				FrontendNavigation::getURLForBlock('profiles', 'login') . '?queryString=' . FrontendNavigation::getURLForBlock('profiles', 'change_password'),
+				307
+			);
+		}
 	}
 
 	/**
@@ -64,8 +70,8 @@ class FrontendProfilesChangePassword extends FrontendBaseBlock
 	private function loadForm()
 	{
 		$this->frm = new FrontendForm('updatePassword', null, null, 'updatePasswordForm');
-		$this->frm->addPassword('old_password');
-		$this->frm->addPassword('new_password', null, null, 'inputText showPasswordInput');
+		$this->frm->addPassword('old_password')->setAttributes(array('required' => null));
+		$this->frm->addPassword('new_password', null, null, 'inputText showPasswordInput')->setAttributes(array('required' => null));
 		$this->frm->addCheckbox('show_password');
 	}
 

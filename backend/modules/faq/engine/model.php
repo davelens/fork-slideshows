@@ -11,7 +11,7 @@
  * In this file we store all generic functions that we will be using in the faq module
  *
  * @author Lester Lievens <lester.lievens@netlash.com>
- * @author Matthias Mullie <matthias@mullie.eu>
+ * @author Matthias Mullie <forkcms@mullie.eu>
  * @author Annelies Van Extergem <annelies.vanextergem@netlash.com>
  * @author Jelmer Snoeck <jelmer.snoeck@netlash.com>
  */
@@ -38,7 +38,7 @@ class BackendFaqModel
 	 */
 	public static function delete($id)
 	{
-		BackendModel::getDB(true)->delete('faq_questions', 'id = ?', array((int) $id));
+		BackendModel::getContainer()->get('database')->delete('faq_questions', 'id = ?', array((int) $id));
 		BackendTagsModel::saveTags($id, '', 'faq');
 	}
 
@@ -49,7 +49,7 @@ class BackendFaqModel
 	 */
 	public static function deleteCategory($id)
 	{
-		$db = BackendModel::getDB(true);
+		$db = BackendModel::getContainer()->get('database');
 		$item = self::getCategory($id);
 
 		if(!empty($item))
@@ -71,11 +71,21 @@ class BackendFaqModel
 	 */
 	public static function deleteCategoryAllowed($id)
 	{
-		return (BackendModel::getDB()->getVar(
-			'SELECT COUNT(id)
+		// get result
+		$result = (BackendModel::getContainer()->get('database')->getVar(
+			'SELECT 1
 			 FROM faq_questions AS i
-			 WHERE i.category_id = ? AND i.language = ?',
+			 WHERE i.category_id = ? AND i.language = ?
+			 LIMIT 1',
 			 array((int) $id, BL::getWorkingLanguage())) == 0);
+
+		// exception
+		if(!BackendModel::getModuleSetting('faq', 'allow_multiple_categories', true) && self::getCategoryCount() == 1)
+		{
+			return false;
+		}
+
+		else return $result;
 	}
 
 	/**
@@ -85,21 +95,22 @@ class BackendFaqModel
 	 */
 	public static function deleteFeedback($itemId)
 	{
-		BackendModel::getDB(true)->update('faq_feedback', array('processed' => 'Y'), 'id = ?', (int) $itemId);
+		BackendModel::getContainer()->get('database')->update('faq_feedback', array('processed' => 'Y'), 'id = ?', (int) $itemId);
 	}
 
 	/**
-	 * Does the question exsist?
+	 * Does the question exist?
 	 *
 	 * @param int $id
 	 * @return bool
 	 */
 	public static function exists($id)
 	{
-		return (bool) BackendModel::getDB()->getVar(
-			'SELECT COUNT(i.id)
+		return (bool) BackendModel::getContainer()->get('database')->getVar(
+			'SELECT 1
 		 	 FROM faq_questions AS i
-			 WHERE i.id = ? AND i.language = ?',
+			 WHERE i.id = ? AND i.language = ?
+			 LIMIT 1',
 			 array((int) $id, BL::getWorkingLanguage()));
 	}
 
@@ -111,10 +122,11 @@ class BackendFaqModel
 	 */
 	public static function existsCategory($id)
 	{
-		return (bool) BackendModel::getDB()->getVar(
-			'SELECT COUNT(i.id)
+		return (bool) BackendModel::getContainer()->get('database')->getVar(
+			'SELECT 1
 			 FROM faq_categories AS i
-			 WHERE i.id = ? AND i.language = ?',
+			 WHERE i.id = ? AND i.language = ?
+			 LIMIT 1',
 			 array((int) $id, BL::getWorkingLanguage()));
 	}
 
@@ -126,7 +138,7 @@ class BackendFaqModel
 	 */
 	public static function get($id)
 	{
-		return (array) BackendModel::getDB()->getRecord(
+		return (array) BackendModel::getContainer()->get('database')->getRecord(
 			'SELECT i.*, m.url
 			 FROM faq_questions AS i
 			 INNER JOIN meta AS m ON m.id = i.meta_id
@@ -142,7 +154,7 @@ class BackendFaqModel
 	 */
 	public static function getAllFeedback($limit = 5)
 	{
-		return (array) BackendModel::getDB()->getRecords(
+		return (array) BackendModel::getContainer()->get('database')->getRecords(
 			'SELECT f.*
 			 FROM faq_feedback AS f
 			 WHERE f.processed = ?
@@ -159,7 +171,7 @@ class BackendFaqModel
 	 */
 	public static function getAllFeedbackForQuestion($id)
 	{
-		return (array) BackendModel::getDB()->getRecords(
+		return (array) BackendModel::getContainer()->get('database')->getRecords(
 			'SELECT f.*
 			 FROM faq_feedback AS f
 			 WHERE f.question_id = ? AND f.processed = ?',
@@ -174,7 +186,7 @@ class BackendFaqModel
 	 */
 	public static function getByTag($tagId)
 	{
-		$items = (array) BackendModel::getDB()->getRecords(
+		$items = (array) BackendModel::getContainer()->get('database')->getRecords(
 			'SELECT i.id AS url, i.question, mt.module
 			 FROM modules_tags AS mt
 			 INNER JOIN tags AS t ON mt.tag_id = t.id
@@ -198,7 +210,7 @@ class BackendFaqModel
 	 */
 	public static function getCategories($includeCount = false)
 	{
-		$db = BackendModel::getDB();
+		$db = BackendModel::getContainer()->get('database');
 
 		if($includeCount)
 		{
@@ -226,11 +238,25 @@ class BackendFaqModel
 	 */
 	public static function getCategory($id)
 	{
-		return (array) BackendModel::getDB()->getRecord(
+		return (array) BackendModel::getContainer()->get('database')->getRecord(
 			'SELECT i.*
 			 FROM faq_categories AS i
 			 WHERE i.id = ? AND i.language = ?',
 			 array((int) $id, BL::getWorkingLanguage()));
+	}
+
+	/**
+	 * Fetch the category count
+	 *
+	 * @return int
+	 */
+	public static function getCategoryCount()
+	{
+		return (int) BackendModel::getContainer()->get('database')->getVar(
+			'SELECT COUNT(i.id)
+			 FROM faq_categories AS i
+			 WHERE i.language = ?',
+			 array(BL::getWorkingLanguage()));
 	}
 
 	/**
@@ -241,7 +267,7 @@ class BackendFaqModel
 	 */
 	public static function getFeedback($id)
 	{
-		return (array) BackendModel::getDB()->getRecord(
+		return (array) BackendModel::getContainer()->get('database')->getRecord(
 			'SELECT f.*
 			 FROM faq_feedback AS f
 			 WHERE f.id = ?',
@@ -255,7 +281,7 @@ class BackendFaqModel
 	 */
 	public static function getMaximumCategorySequence()
 	{
-		return (int) BackendModel::getDB()->getVar(
+		return (int) BackendModel::getContainer()->get('database')->getVar(
 			'SELECT MAX(i.sequence)
 			 FROM faq_categories AS i
 			 WHERE i.language = ?',
@@ -270,7 +296,7 @@ class BackendFaqModel
 	 */
 	public static function getMaximumSequence($id)
 	{
-		return (int) BackendModel::getDB()->getVar(
+		return (int) BackendModel::getContainer()->get('database')->getVar(
 			'SELECT MAX(i.sequence)
 			 FROM faq_questions AS i
 			 WHERE i.category_id = ?',
@@ -287,21 +313,19 @@ class BackendFaqModel
 	public static function getURL($url, $id = null)
 	{
 		$url = SpoonFilter::urlise((string) $url);
-		$db = BackendModel::getDB();
+		$db = BackendModel::getContainer()->get('database');
 
 		// new item
 		if($id === null)
 		{
-			// get number of categories with this URL
-			$number = (int) $db->getVar(
-				'SELECT COUNT(i.id)
+			// already exists
+			if((bool) $db->getVar(
+				'SELECT 1
 				 FROM faq_questions AS i
 				 INNER JOIN meta AS m ON i.meta_id = m.id
-				 WHERE i.language = ? AND m.url = ?',
-				 array(BL::getWorkingLanguage(), $url));
-
-			// already exists
-			if($number != 0)
+				 WHERE i.language = ? AND m.url = ?
+				 LIMIT 1',
+				array(BL::getWorkingLanguage(), $url)))
 			{
 				$url = BackendModel::addNumber($url);
 				return self::getURL($url);
@@ -310,16 +334,14 @@ class BackendFaqModel
 		// current category should be excluded
 		else
 		{
-			// get number of items with this URL
-			$number = (int) $db->getVar(
-				'SELECT COUNT(i.id)
+			// already exists
+			if((bool) $db->getVar(
+				'SELECT 1
 				 FROM faq_questions AS i
 				 INNER JOIN meta AS m ON i.meta_id = m.id
-				 WHERE i.language = ? AND m.url = ? AND i.id != ?',
-				 array(BL::getWorkingLanguage(), $url, $id));
-
-			// already exists
-			if($number != 0)
+				 WHERE i.language = ? AND m.url = ? AND i.id != ?
+				 LIMIT 1',
+				array(BL::getWorkingLanguage(), $url, $id)))
 			{
 				$url = BackendModel::addNumber($url);
 				return self::getURL($url, $id);
@@ -339,21 +361,18 @@ class BackendFaqModel
 	public static function getURLForCategory($url, $id = null)
 	{
 		$url = SpoonFilter::urlise((string) $url);
-		$db = BackendModel::getDB();
+		$db = BackendModel::getContainer()->get('database');
 
 		// new category
 		if($id === null)
 		{
-			// get number of categories with this URL
-			$number = (int) $db->getVar(
-				'SELECT COUNT(i.id)
+			if((bool) $db->getVar(
+				'SELECT 1
 				 FROM faq_categories AS i
 				 INNER JOIN meta AS m ON i.meta_id = m.id
-				 WHERE i.language = ? AND m.url = ?',
-				 array(BL::getWorkingLanguage(), $url));
-
-			// already exists
-			if($number != 0)
+				 WHERE i.language = ? AND m.url = ?
+				 LIMIT 1',
+				array(BL::getWorkingLanguage(), $url)))
 			{
 				$url = BackendModel::addNumber($url);
 				return self::getURLForCategory($url);
@@ -362,16 +381,13 @@ class BackendFaqModel
 		// current category should be excluded
 		else
 		{
-			// get number of items with this URL
-			$number = (int) $db->getVar(
-				'SELECT COUNT(i.id)
+			if((bool) $db->getVar(
+				'SELECT 1
 				 FROM faq_categories AS i
 				 INNER JOIN meta AS m ON i.meta_id = m.id
-				 WHERE i.language = ? AND m.url = ? AND i.id != ?',
-				 array(BL::getWorkingLanguage(), $url, $id));
-
-			// already exists
-			if($number != 0)
+				 WHERE i.language = ? AND m.url = ? AND i.id != ?
+				 LIMIT 1',
+				array(BL::getWorkingLanguage(), $url, $id)))
 			{
 				$url = BackendModel::addNumber($url);
 				return self::getURLForCategory($url, $id);
@@ -389,7 +405,7 @@ class BackendFaqModel
 	 */
 	public static function insert(array $item)
 	{
-		$insertId = BackendModel::getDB(true)->insert('faq_questions', $item);
+		$insertId = BackendModel::getContainer()->get('database')->insert('faq_questions', $item);
 
 		BackendModel::invalidateFrontendCache('faq', BL::getWorkingLanguage());
 
@@ -405,7 +421,7 @@ class BackendFaqModel
 	 */
 	public static function insertCategory(array $item, $meta = null)
 	{
-		$db = BackendModel::getDB(true);
+		$db = BackendModel::getContainer()->get('database');
 
 		if($meta !== null) $item['meta_id'] = $db->insert('meta', $meta);
 		$item['id'] = $db->insert('faq_categories', $item);
@@ -422,7 +438,7 @@ class BackendFaqModel
 	 */
 	public static function update(array $item)
 	{
-		BackendModel::getDB(true)->update('faq_questions', $item, 'id = ?', array((int) $item['id']));
+		BackendModel::getContainer()->get('database')->update('faq_questions', $item, 'id = ?', array((int) $item['id']));
 		BackendModel::invalidateFrontendCache('faq', BL::getWorkingLanguage());
 	}
 
@@ -433,7 +449,7 @@ class BackendFaqModel
 	 */
 	public static function updateCategory(array $item)
 	{
-		BackendModel::getDB(true)->update('faq_categories', $item, 'id = ?', array($item['id']));
+		BackendModel::getContainer()->get('database')->update('faq_categories', $item, 'id = ?', array($item['id']));
 		BackendModel::invalidateFrontendCache('faq', BL::getWorkingLanguage());
 	}
 }

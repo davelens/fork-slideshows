@@ -10,7 +10,7 @@
 /**
  * This is the index-action (default), it will display the overview of location items
  *
- * @author Matthias Mullie <matthias@mullie.eu>
+ * @author Matthias Mullie <forkcms@mullie.eu>
  * @author Jelmer Snoeck <jelmer.snoeck@netlash.com>
  */
 class BackendLocationIndex extends BackendBaseActionIndex
@@ -35,7 +35,7 @@ class BackendLocationIndex extends BackendBaseActionIndex
 		parent::execute();
 
 		// add js
-		$this->header->addJS('http://maps.google.com/maps/api/js?sensor=false', null, false, false, true);
+		$this->header->addJS('http://maps.google.com/maps/api/js?sensor=false', null, false, true, false);
 
 		$this->loadData();
 
@@ -55,6 +55,9 @@ class BackendLocationIndex extends BackendBaseActionIndex
 		$this->settings = BackendLocationModel::getMapSettings(0);
 		$firstMarker = current($this->items);
 
+		// if there are no markers we reset it to the birthplace of Fork
+		if($firstMarker === false) $firstMarker = array('lat' => '51.052146', 'lng' => '3.720491');
+
 		// load the settings from the general settings
 		if(empty($this->settings))
 		{
@@ -65,7 +68,7 @@ class BackendLocationIndex extends BackendBaseActionIndex
 			$this->settings['center']['lng'] = $firstMarker['lng'];
 		}
 
-		// no center point given yet, use the first occurance
+		// no center point given yet, use the first occurrence
 		if(!isset($this->settings['center']))
 		{
 			$this->settings['center']['lat'] = $firstMarker['lat'];

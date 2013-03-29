@@ -16,6 +16,24 @@
 class BackendBlogAPI
 {
 	/**
+	 * Delete comment(s).
+	 *
+	 * @param string $id The id/ids of the comment(s) to update.
+	 */
+	public static function commentsDelete($id)
+	{
+		// authorize
+		if(API::authorize() && API::isValidRequestMethod('POST'))
+		{
+			// redefine
+			if(!is_array($id)) $id = (array) explode(',', $id);
+
+			// update statuses
+			BackendBlogModel::deleteComments($id);
+		}
+	}
+
+	/**
 	 * Get the comments
 	 *
 	 * @param string[optional] $status The type of comments to get. Possible values are: published, moderation, spam.
@@ -34,10 +52,13 @@ class BackendBlogAPI
 			$offset = (int) $offset;
 
 			// validate
-			if($limit > 10000) API::output(API::ERROR, array('message' => 'Limit can\'t be larger than 10000.'));
+			if($limit > 10000)
+			{
+				return API::output(API::ERROR, array('message' => 'Limit can\'t be larger than 10000.'));
+			}
 
 			// get comments
-			$comments = (array) BackendModel::getDB()->getRecords(
+			$comments = (array) BackendModel::getContainer()->get('database')->getRecords(
 				'SELECT i.id, UNIX_TIMESTAMP(i.created_on) AS created_on, i.author, i.email, i.website, i.text, i.type, i.status,
 				 p.id AS post_id, p.title AS post_title, m.url AS post_url, p.language AS post_language
 				 FROM blog_comments AS i
@@ -45,11 +66,24 @@ class BackendBlogAPI
 				 INNER JOIN meta AS m ON p.meta_id = m.id
 				 WHERE p.status = ?
 				 GROUP BY i.id
+				 ORDER BY i.id DESC
 				 LIMIT ?, ?',
 				array('active', $offset, $limit)
 			);
 
-			$return = array('comments' => null);
+			$totalCount = (int) BackendModel::getContainer()->get('database')->getVar(
+				'SELECT COUNT(i.id)
+				 FROM blog_comments AS i
+				 INNER JOIN blog_posts AS p ON i.post_id = p.id AND i.language = p.language
+				 INNER JOIN meta AS m ON p.meta_id = m.id
+				 WHERE p.status = ?',
+				array('active')
+			);
+
+			$return = array(
+				'comments' => null,
+				'total_count' => $totalCount,
+			);
 
 			// build return array
 			foreach($comments as $row)
@@ -159,7 +193,10 @@ class BackendBlogAPI
 			if($authorWebsite !== null) $authorWebsite = (string) $authorWebsite;
 
 			// validate
-			if($status === null && $text === null && $authorName === null && $authorEmail === null && $authorWebsite === null) API::output(API::ERROR, array('message' => 'No data provided.'));
+			if($status === null && $text === null && $authorName === null && $authorEmail === null && $authorWebsite === null)
+			{
+				return API::output(API::ERROR, array('message' => 'No data provided.'));
+			}
 
 			// update
 			if($text !== null || $authorName !== null || $authorEmail != null || $authorWebsite !== null)

@@ -12,7 +12,7 @@
  *
  * @author Davy Hellemans <davy@netlash.com>
  * @author Tijs Verkoyen <tijs@sumocoders.be>
- * @author Matthias Mullie <matthias@mullie.eu>
+ * @author Matthias Mullie <forkcms@mullie.eu>
  */
 class InstallerStep5 extends InstallerStep
 {
@@ -24,7 +24,6 @@ class InstallerStep5 extends InstallerStep
 		$this->loadForm();
 		$this->validateForm();
 		$this->parseForm();
-		$this->tpl->display('layout/templates/step_5.tpl');
 	}
 
 	/**

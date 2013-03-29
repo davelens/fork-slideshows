@@ -13,7 +13,7 @@
  * @author Davy Hellemans <davy.hellemans@netlash.com>
  * @author Tijs Verkoyen <tijs@sumocoders.be>
  * @author Dieter Vanden Eynde <dieter.vandeneynde@netlash.com>
- * @author Matthias Mullie <matthias@mullie.eu>
+ * @author Matthias Mullie <forkcms@mullie.eu>
  */
 class BackendContentBlocksEdit extends BackendBaseActionEdit
 {
@@ -117,7 +117,7 @@ class BackendContentBlocksEdit extends BackendBaseActionEdit
 		// check if this action is allowed
 		if(BackendAuthentication::isAllowedAction('edit'))
 		{
-			// set colum URLs
+			// set column URLs
 			$this->dgRevisions->setColumnURL('title', BackendModel::createURLForAction('edit') . '&amp;id=[id]&amp;revision=[revision_id]');
 
 			// add use column

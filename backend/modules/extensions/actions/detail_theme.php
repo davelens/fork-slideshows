@@ -3,7 +3,7 @@
 /**
  * This is the detail-action it will display the details of a theme.
  *
- * @author Matthias Mullie <matthias@mullie.eu>
+ * @author Matthias Mullie <forkcms@mullie.eu>
  */
 class BackendExtensionsDetailTheme extends BackendBaseActionIndex
 {
@@ -103,7 +103,7 @@ class BackendExtensionsDetailTheme extends BackendBaseActionIndex
 	 */
 	private function loadDataGridTemplates()
 	{
-		// no hooks so dont bother
+		// no hooks so don't bother
 		if(!isset($this->information['templates'])) return;
 
 		// build data for display in datagrid

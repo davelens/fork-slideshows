@@ -53,8 +53,9 @@ class FrontendProfilesRegister extends FrontendBaseBlock
 	private function loadForm()
 	{
 		$this->frm = new FrontendForm('register', null, null, 'registerForm');
-		$this->frm->addText('email');
-		$this->frm->addPassword('password', null, null, 'inputText showPasswordInput');
+		$this->frm->addText('display_name');
+		$this->frm->addText('email')->setAttributes(array('required' => null, 'type' => 'email'));
+		$this->frm->addPassword('password', null, null, 'inputText showPasswordInput')->setAttributes(array('required' => null));
 		$this->frm->addCheckbox('show_password');
 	}
 
@@ -86,6 +87,7 @@ class FrontendProfilesRegister extends FrontendBaseBlock
 		if($this->frm->isSubmitted())
 		{
 			// get fields
+			$txtDisplayName = $this->frm->getField('display_name');
 			$txtEmail = $this->frm->getField('email');
 			$txtPassword = $this->frm->getField('password');
 
@@ -110,17 +112,18 @@ class FrontendProfilesRegister extends FrontendBaseBlock
 			// no errors
 			if($this->frm->isCorrect())
 			{
-				// generate salt
-				$salt = FrontendProfilesModel::getRandomString();
-
 				// init values
+				$settings = array();
 				$values = array();
+
+				// generate salt
+				$settings['salt'] = FrontendProfilesModel::getRandomString();
 
 				// values
 				$values['email'] = $txtEmail->getValue();
-				$values['password'] = FrontendProfilesModel::getEncryptedString($txtPassword->getValue(), $salt);
+				$values['password'] = FrontendProfilesModel::getEncryptedString($txtPassword->getValue(), $settings['salt']);
 				$values['status'] = 'inactive';
-				$values['display_name'] = $txtEmail->getValue();
+				$values['display_name'] = $txtDisplayName->getValue();
 				$values['registered_on'] = FrontendModel::getUTCDate();
 
 				/*
@@ -133,23 +136,22 @@ class FrontendProfilesRegister extends FrontendBaseBlock
 					$profileId = FrontendProfilesModel::insert($values);
 
 					// use the profile id as url until we have an actual url
-					FrontendProfilesModel::update($profileId, array('url' => FrontendProfilesModel::getUrl($profileId)));
+					FrontendProfilesModel::update($profileId, array('url' => FrontendProfilesModel::getUrl($values['display_name'])));
 
 					// trigger event
 					FrontendModel::triggerEvent('profiles', 'after_register', array('id' => $profileId));
 
 					// generate activation key
-					$activationKey = FrontendProfilesModel::getEncryptedString($profileId . microtime(), $salt);
+					$settings['activation_key'] = FrontendProfilesModel::getEncryptedString($profileId . microtime(), $settings['salt']);
 
 					// set settings
-					FrontendProfilesModel::setSetting($profileId, 'salt', $salt);
-					FrontendProfilesModel::setSetting($profileId, 'activation_key', $activationKey);
+					FrontendProfilesModel::setSettings($profileId, $settings);
 
 					// login
 					FrontendProfilesAuthentication::login($profileId);
 
 					// activation URL
-					$mailValues['activationUrl'] = SITE_URL . FrontendNavigation::getURLForBlock('profiles', 'activate') . '/' . $activationKey;
+					$mailValues['activationUrl'] = SITE_URL . FrontendNavigation::getURLForBlock('profiles', 'activate') . '/' . $settings['activation_key'];
 
 					// send email
 					FrontendMailer::addEmail(

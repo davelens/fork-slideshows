@@ -10,7 +10,7 @@
 /**
  * In this file we store all generic functions that we will be using in the location module
  *
- * @author Matthias Mullie <matthias@mullie.eu>
+ * @author Matthias Mullie <forkcms@mullie.eu>
  * @author Jelmer Snoeck <jelmer.snoeck@netlash.com>
  */
 class BackendLocationModel
@@ -28,7 +28,7 @@ class BackendLocationModel
 	public static function delete($id)
 	{
 		// get db
-		$db = BackendModel::getDB(true);
+		$db = BackendModel::getContainer()->get('database');
 
 		// get item
 		$item = self::get($id);
@@ -54,10 +54,11 @@ class BackendLocationModel
 	 */
 	public static function exists($id)
 	{
-		return (bool) BackendModel::getDB()->getVar(
-			'SELECT COUNT(i.id)
+		return (bool) BackendModel::getContainer()->get('database')->getVar(
+			'SELECT 1
 			 FROM location AS i
-			 WHERE i.id = ? AND i.language = ?',
+			 WHERE i.id = ? AND i.language = ?
+			 LIMIT 1',
 			array((int) $id, BL::getWorkingLanguage())
 		);
 	}
@@ -70,7 +71,7 @@ class BackendLocationModel
 	 */
 	public static function get($id)
 	{
-		return (array) BackendModel::getDB()->getRecord(
+		return (array) BackendModel::getContainer()->get('database')->getRecord(
 			'SELECT i.*
 			 FROM location AS i
 			 WHERE i.id = ? AND i.language = ?',
@@ -85,7 +86,7 @@ class BackendLocationModel
 	 */
 	public static function getAll()
 	{
-		return (array) BackendModel::getDB()->getRecords(
+		return (array) BackendModel::getContainer()->get('database')->getRecords(
 			'SELECT i.*
 			 FROM location AS i
 			 WHERE i.language = ? AND i.show_overview = ?',
@@ -102,7 +103,7 @@ class BackendLocationModel
 	 */
 	public static function getMapSetting($mapId, $name)
 	{
-		$serializedData = (string) BackendModel::getDB()->getVar(
+		$serializedData = (string) BackendModel::getContainer()->get('database')->getVar(
 			'SELECT s.value
 			 FROM location_settings AS s
 			 WHERE s.map_id = ? AND s.name = ?',
@@ -121,7 +122,7 @@ class BackendLocationModel
 	 */
 	public static function getMapSettings($mapId)
 	{
-		$mapSettings = (array) BackendModel::getDB()->getPairs(
+		$mapSettings = (array) BackendModel::getContainer()->get('database')->getPairs(
 			'SELECT s.name, s.value
 			 FROM location_settings AS s
 			 WHERE s.map_id = ?',
@@ -141,7 +142,7 @@ class BackendLocationModel
 	 */
 	public static function insert($item)
 	{
-		$db = BackendModel::getDB(true);
+		$db = BackendModel::getContainer()->get('database');
 		$item['created_on'] = BackendModel::getUTCDate();
 
 		// build extra
@@ -196,7 +197,7 @@ class BackendLocationModel
 	{
 		$value = serialize($value);
 
-		BackendModel::getDB(true)->execute(
+		BackendModel::getContainer()->get('database')->execute(
 			'INSERT INTO location_settings(map_id, name, value)
 			 VALUES(?, ?, ?)
 			 ON DUPLICATE KEY UPDATE value = ?',
@@ -212,7 +213,7 @@ class BackendLocationModel
 	 */
 	public static function update($item)
 	{
-		$db = BackendModel::getDB(true);
+		$db = BackendModel::getContainer()->get('database');
 		$item['edited_on'] = BackendModel::getUTCDate();
 
 		if(isset($item['extra_id']))

@@ -10,8 +10,9 @@
 /**
  * This is the index-action, it has an overview of locations.
  *
- * @author Matthias Mullie <matthias@mullie.eu>
+ * @author Matthias Mullie <forkcms@mullie.eu>
  * @author Jelmer Snoeck <jelmer.snoeck@netlash.com>
+ * @author Tijs Verkoyen <tijs@sumocoders.be>
  */
 class FrontendLocationIndex extends FrontendBaseBlock
 {
@@ -25,6 +26,8 @@ class FrontendLocationIndex extends FrontendBaseBlock
 	 */
 	public function execute()
 	{
+		$this->addJS('http://maps.google.com/maps/api/js?sensor=true', true, false);
+
 		parent::execute();
 
 		$this->loadTemplate();
@@ -48,7 +51,7 @@ class FrontendLocationIndex extends FrontendBaseBlock
 			$this->settings['center']['lng'] = $firstMarker['lng'];
 		}
 
-		// no center point given yet, use the first occurance
+		// no center point given yet, use the first occurence
 		if(!isset($this->settings['center']))
 		{
 			$this->settings['center']['lat'] = $firstMarker['lat'];
@@ -61,6 +64,9 @@ class FrontendLocationIndex extends FrontendBaseBlock
 	 */
 	private function parse()
 	{
+		$this->addJSData('settings', $this->settings);
+		$this->addJSData('items', $this->items);
+
 		$this->tpl->assign('locationItems', $this->items);
 		$this->tpl->assign('locationSettings', $this->settings);
 	}

@@ -22,11 +22,12 @@ class FrontendMailmotorCMHelper
 	 */
 	public static function existsGroupByCampaignMonitorID($id)
 	{
-		return (bool) FrontendModel::getDB()->getVar(
-			'SELECT COUNT(mg.id)
+		return (bool) FrontendModel::getContainer()->get('database')->getVar(
+			'SELECT 1
 			 FROM mailmotor_groups AS mg
 			 INNER JOIN mailmotor_campaignmonitor_ids AS mci ON mci.other_id = mg.id
-			 WHERE mci.cm_id = ? AND mci.type = ?',
+			 WHERE mci.cm_id = ? AND mci.type = ?
+			 LIMIT 1',
 			array($id, 'list')
 		);
 	}
@@ -40,7 +41,7 @@ class FrontendMailmotorCMHelper
 	 */
 	public static function getCampaignMonitorID($type, $otherId)
 	{
-		return FrontendModel::getDB()->getVar(
+		return FrontendModel::getContainer()->get('database')->getVar(
 			'SELECT cm_id
 			 FROM mailmotor_campaignmonitor_ids
 			 WHERE type = ? AND other_id = ?',
@@ -77,7 +78,7 @@ class FrontendMailmotorCMHelper
 			}
 
 			// require CampaignMonitor class
-			require_once 'external/campaignmonitor.php';
+			require_once PATH_LIBRARY . '/external/campaignmonitor.php';
 
 			// set login data
 			$url = FrontendModel::getModuleSetting('mailmotor', 'cm_url');
@@ -125,7 +126,7 @@ class FrontendMailmotorCMHelper
 	public static function subscribe($email, $groupId = null)
 	{
 		// get objects
-		$db = FrontendModel::getDB(true);
+		$db = FrontendModel::getContainer()->get('database');
 		$cm = self::getCM();
 
 		// set groupID
@@ -196,7 +197,7 @@ class FrontendMailmotorCMHelper
 	public static function unsubscribe($email, $groupId = null)
 	{
 		// get objects
-		$db = FrontendModel::getDB(true);
+		$db = FrontendModel::getContainer()->get('database');
 		$cm = self::getCM();
 
 		// set group ID

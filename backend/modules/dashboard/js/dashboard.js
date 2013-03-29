@@ -2,7 +2,7 @@
  * Interaction for the dashboard module
  *
  * @author	Tijs Verkoyen <tijs@sumocoders.be>
- * @author	Thomas Deceuninck <thomasdeceuninck@netlash.com>
+ * @author	Thomas Deceuninck <thomas@fronto.be>
  */
 jsBackend.dashboard =
 {
@@ -47,7 +47,7 @@ jsBackend.dashboard =
 		// bind before unload event
 		$(window).on('beforeunload', function()
 		{
-			return '{$msgValuesAreChanged}';
+			return jsBackend.locale.msg('ValuesAreChanged');
 		});
 
 		// hide edit text
@@ -165,7 +165,7 @@ jsBackend.dashboard =
 			},
 			success: function(data, textStatus)
 			{
-				// not a succes so revert the changes
+				// not a success so revert the changes
 				if(data.code != 200)
 				{
 					// refresh page

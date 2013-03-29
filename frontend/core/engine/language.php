@@ -36,7 +36,7 @@ class FrontendLanguage
 	 */
 	public static function buildCache($language, $application)
 	{
-		$db = FrontendModel::getDB();
+		$db = FrontendModel::getContainer()->get('database');
 
 		// get types
 		$types = $db->getEnumValues('locale', 'type');
@@ -49,6 +49,9 @@ class FrontendLanguage
 			 ORDER BY type ASC, name ASC, module ASC',
 			array((string) $language, (string) $application)
 		);
+
+		// init var
+		$json = array();
 
 		// start generating PHP
 		$value = '<?php' . "\n";
@@ -87,8 +90,16 @@ class FrontendLanguage
 					}
 
 					// parse
-					if($application == 'backend') $value .= '$' . $type . '[\'' . $item['module'] . '\'][\'' . $item['name'] . '\'] = \'' . str_replace('\"', '"', addslashes($item['value'])) . '\';' . "\n";
-					else $value .= '$' . $type . '[\'' . $item['name'] . '\'] = \'' . str_replace('\"', '"', addslashes($item['value'])) . '\';' . "\n";
+					if($application == 'backend')
+					{
+						$value .= '$' . $type . '[\'' . $item['module'] . '\'][\'' . $item['name'] . '\'] = \'' . str_replace('\"', '"', addslashes($item['value'])) . '\';' . "\n";
+						$json[$type][$item['module']][$item['name']] = $item['value'];
+					}
+					else
+					{
+						$value .= '$' . $type . '[\'' . $item['name'] . '\'] = \'' . str_replace('\"', '"', addslashes($item['value'])) . '\';' . "\n";
+						$json[$type][$item['name']] = $item['value'];
+					}
 
 					// unset
 					unset($locale[$i]);
@@ -101,6 +112,23 @@ class FrontendLanguage
 
 		// store
 		SpoonFile::setContent(constant(mb_strtoupper($application) . '_CACHE_PATH') . '/locale/' . $language . '.php', $value);
+
+		// get months
+		$monthsLong = SpoonLocale::getMonths($language, false);
+		$monthsShort = SpoonLocale::getMonths($language, true);
+
+		// get days
+		$daysLong = SpoonLocale::getWeekDays($language, false, 'sunday');
+		$daysShort = SpoonLocale::getWeekDays($language, true, 'sunday');
+
+		// build labels
+		foreach($monthsLong as $key => $value) $json['loc']['MonthLong' . SpoonFilter::ucfirst($key)] = $value;
+		foreach($monthsShort as $key => $value) $json['loc']['MonthShort' . SpoonFilter::ucfirst($key)] = $value;
+		foreach($daysLong as $key => $value) $json['loc']['DayLong' . SpoonFilter::ucfirst($key)] = $value;
+		foreach($daysShort as $key => $value) $json['loc']['DayShort' . SpoonFilter::ucfirst($key)] = $value;
+
+		// store
+		SpoonFile::setContent(constant(mb_strtoupper($application) . '_CACHE_PATH') . '/locale/' . $language . '.json', json_encode($json));
 	}
 
 	/**
@@ -153,7 +181,7 @@ class FrontendLanguage
 	}
 
 	/**
-	 * Get the prefered language by using the browser-language
+	 * Get the preferred language by using the browser-language
 	 *
 	 * @param bool[optional] $forRedirect Only look in the languages to redirect?
 	 * @return string
@@ -166,11 +194,29 @@ class FrontendLanguage
 			// get languages
 			$redirectLanguages = self::getRedirectLanguages();
 
-			// prefered languages
-			$browserLanguages = explode(',', $_SERVER['HTTP_ACCEPT_LANGUAGE']);
+			// preferred languages
+			$acceptedLanguages = explode(',', $_SERVER['HTTP_ACCEPT_LANGUAGE']);
+			$browserLanguages = array();
+
+			foreach($acceptedLanguages as $language)
+			{
+				$qPos = strpos($language, 'q=');
+				$weight = 1;
+
+				if($qPos !== false)
+				{
+					$endPos = strpos($language, ';', $qPos);
+					$weight = ($endPos === false) ? (float) substr($language, $qPos + 2) : (float) substr($language, $qPos + 2, $endPos);
+				}
+
+				$browserLanguages[$language] = $weight;
+			}
+
+			// sort by weight
+			arsort($browserLanguages);
 
 			// loop until result
-			foreach($browserLanguages as $language)
+			foreach(array_keys($browserLanguages) as $language)
 			{
 				// redefine language
 				$language = substr($language, 0, 2); // first two characters
