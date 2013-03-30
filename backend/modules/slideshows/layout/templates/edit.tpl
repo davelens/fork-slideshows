@@ -20,7 +20,6 @@
 								<h3>{$lblGeneral|ucfirst}</h3>
 							</div>
 							<div class="options horizontal">
-
 								<p>
 									<label for="name">{$lblName|ucfirst}<abbr title="{$lblRequiredField}">*</abbr></label>
 									{$txtName} {$txtNameError}
@@ -37,6 +36,18 @@
 									{$ddmModule} <span id="methodsHolder">{$ddmMethods}</span>
 								</p>
 								{/option:modules}
+							</div>
+						</div>
+
+						<div id="settings" class="box">
+							<div class="heading">
+								<h3>{$lblSettings|ucfirst}</h3>
+							</div>
+							<div class="options horizontal">
+								<p>
+									<label for="speed">{$lblSpeed|ucfirst}</label>
+									{$txtSpeed} {$txtSpeedError}
+								</p>
 							</div>
 						</div>
 					</td>
@@ -58,6 +69,24 @@
 								</p>
 							</div>
 						</div>
+
+						<div class="box">
+							<div class="heading">
+								<h3>{$lblNavigation|ucfirst}</h3>
+							</div>
+							<div class="options">
+								<ul class="inputList">
+									<li>
+										{$chkHideButtonNavigation}
+										<label for="hideButtonNavigation">{$msgHideButtonNavigation}</label>
+									</li>
+									<li>
+										{$chkHidePaging}
+										<label for="hidePaging">{$msgHidePaging}</label>
+									</li>
+								</ul>
+							</div>
+						</div>
 					</td>
 				</tr>
 			</table>
@@ -66,14 +95,16 @@
 
 	<div class="fullwidthOptions">
 		{option:showSlideshowsDelete}
-		<a href="{$var|geturl:'delete'}&amp;id={$item.id}" data-message-id="confirmDelete" class="askConfirmation button linkButton icon iconDelete">
-			<span>{$lblDelete|ucfirst}</span>
-		</a>
-		<div id="confirmDelete" title="{$lblDelete|ucfirst}?" style="display: none;">
-			<p>
-				{$msgConfirmDelete|sprintf:{$item.name}}
-			</p>
-		</div>
+			{option:isDeletable}
+				<a href="{$var|geturl:'delete'}&amp;id={$item.id}" data-message-id="confirmDelete" class="askConfirmation button linkButton icon iconDelete">
+					<span>{$lblDelete|ucfirst}</span>
+				</a>
+				<div id="confirmDelete" title="{$lblDelete|ucfirst}?" style="display: none;">
+					<p>
+						{$msgConfirmDelete|sprintf:{$item.name}}
+					</p>
+				</div>
+			{/option:isDeletable}
 		{/option:showSlideshowsDelete}
 
 		<div class="buttonHolderRight">

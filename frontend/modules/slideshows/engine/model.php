@@ -1,30 +1,19 @@
 <?php
 
-/*
- * This file is part of Fork CMS.
- *
- * For the full copyright and license information, please view the license
- * file that was distributed with this source code.
- */
-
 /**
  * In this file we store all generic DB functions that we will be using in the slideshows module
  *
- * @author Dave Lens <dave.lens@netlash.com>
+ * @author Dave Lens <github-slideshows@davelens.be>
  */
 class FrontendSlideshowsModel
 {
 	/**
-	 * Returns the slideshow record
-	 *
-	 * @param int $id The ID of the slideshow to return.
+	 * @param int $id
 	 * @return array
 	 */
 	public static function get($id)
 	{
-		$db = FrontendModel::getDB();
-
-		$item = $db->getRecord(
+		$item = (array) FrontendModel::getContainer()->get('database')->getRecord(
 			'SELECT a.*, b.type, b.settings
 			 FROM slideshows AS a
 			 INNER JOIN slideshows_types AS b ON b.id = a.type_id
@@ -33,54 +22,47 @@ class FrontendSlideshowsModel
 		);
 
 		$item['settings'] = unserialize($item['settings']);
-
+		$item['hide_paging'] = ($item['hide_paging'] === 'Y');
+		$item['hide_button_navigation'] = ($item['hide_button_navigation'] === 'Y');
 		return $item;
 	}
 
 	/**
-	 * Returns the dataset method
-	 *
-	 * @param int $id The ID of the slideshow to get the method from.
+	 * @param int $id The ID of the slideshow
 	 * @return string
 	 */
 	public static function getDataSetMethod($id)
 	{
-		$db = FrontendModel::getDB();
-
-		return $db->getVar(
-			'SELECT i.method
-			 FROM slideshows_datasets AS i
-			 WHERE i.id = ?',
+		return FrontendModel::getContainer()->get('database')->getVar(
+			'SELECT a.method
+			 FROM slideshows_datasets AS a
+			 WHERE a.id = ?',
 			array($id)
 		);
 	}
 
 	/**
-	 * Returns the images for a given slideshow ID
-	 *
-	 * @param int $slideshowID The ID of the slideshow to fetch the images for.
+	 * @param int $id The ID of the slideshow
 	 * @return array
 	 */
-	public static function getImages($slideshowID)
+	public static function getImages($id)
 	{
-		$db = FrontendModel::getDB();
-
-		$records = $db->getRecords(
+		$records = (array) FrontendModel::getContainer()->get('database')->getRecords(
 			'SELECT a.*
 			 FROM slideshows_images AS a
 			 WHERE a.slideshow_id = ?
 			 ORDER BY a.sequence',
-			array((int) $slideshowID)
+			array((int) $id)
 		);
 
 		if(empty($records)) return array();
 
 		// fetch the slideshow so we know the measurements
-		$slideshow = self::get($slideshowID);
+		$slideshow = self::get($id);
 
 		// define the format and the slideshow image folder
 		$format = $slideshow['width'] . 'x' . $slideshow['height'];
-		$slideshowImageURI = SITE_URL . '/' . FRONTEND_FILES_URL . '/slideshows/' . $slideshowID;
+		$slideshowImageURI = SITE_URL . '/' . FRONTEND_FILES_URL . '/slideshows/' . $id;
 
 		foreach($records as $key => $record)
 		{
@@ -98,11 +80,12 @@ class FrontendSlideshowsModel
 				// if this is an internal page, we need to build the url since we have the id
 				if(!$external)
 				{
-					$records[$key]['data']['link']['url'] = FrontendNavigation::getURL($records[$key]['data']['link']['id']);
+					$extraId = $records[$key]['data']['link']['id'];
+					$records[$key]['data']['link']['url'] = FrontendNavigation::getURL($extraId);
 				}
 			}
 		}
 
-		return $records;
+		return (array) $records;
 	}
 }

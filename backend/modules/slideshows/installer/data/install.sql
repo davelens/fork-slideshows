@@ -8,6 +8,9 @@ CREATE TABLE `slideshows` (
   `name` varchar(255) CHARACTER SET latin1 NOT NULL,
   `width` int(11) DEFAULT NULL,
   `height` int(11) DEFAULT NULL,
+  `hide_button_navigation` enum('N','Y') DEFAULT 'N',
+  `hide_paging` enum('N','Y') DEFAULT 'N',
+  `speed` int(5) DEFAULT 7000,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci ROW_FORMAT=COMPACT AUTO_INCREMENT=1 ;
 
@@ -29,7 +32,7 @@ CREATE TABLE `slideshows_images` (
   `link` varchar(255) DEFAULT NULL,
   `caption` text DEFAULT NULL,
   `data` text DEFAULT NULL,
-  `sequence` int(11) NOT NULL,
+  `sequence` int(11) DEFAULT 0,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
@@ -42,4 +45,4 @@ CREATE TABLE `slideshows_types` (
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci ROW_FORMAT=COMPACT AUTO_INCREMENT=1 ;
 
 
-INSERT INTO `slideshows_types` VALUES('', 'basic', NULL);
+INSERT INTO slideshows_types(type, settings) VALUES('basic', NULL);

@@ -25,9 +25,9 @@ class BackendSlideshowsAjaxDeleteDatasetMethod extends BackendBaseAJAXAction
 
 		if($id === 0) $this->output(self::BAD_REQUEST, null, 'ID-parameter is missing.');
 
-		if(BackendSlideshowsModel::deleteDatasetMethod($id) > 0)
+		if(BackendSlideshowsModel::deleteDatasetMethod(array($id)) > 0)
 		{
-			$this->output(self::OK, $id);
+			return $this->output(self::OK, $id);
 		}
 
 		// no relevant records deleted

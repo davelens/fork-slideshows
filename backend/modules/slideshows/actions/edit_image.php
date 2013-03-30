@@ -50,6 +50,7 @@ class BackendSlideshowsEditImage extends BackendBaseActionEdit
 	protected function loadForm()
 	{
 		$internalLinks = BackendSlideshowsModel::getInternalLinks();
+
 		$internalLink = ($this->record['link']['type'] == 'internal') ? $this->record['link']['id'] : '';
 		$externalLink = ($this->record['link']['type'] == 'external') ? $this->record['link']['url'] : '';
 
@@ -60,8 +61,10 @@ class BackendSlideshowsEditImage extends BackendBaseActionEdit
 		$this->frm->addCheckbox('delete_image');
 		$this->frm->addCheckbox('external_link', ($this->record['link']['type'] == 'external'));
 		$this->frm->addText('external_url', $externalLink);
-		$this->frm->addDropdown('internal_url', $internalLinks, $internalLink);
-		$this->frm->getField('internal_url')->setDefaultElement('');
+		$this->frm->addDropdown('internal_url', $internalLinks, $internalLink,
+			false,
+			'chzn-select'
+		)->setAttribute('style', 'width:800px')->setDefaultElement('--');
 	}
 
 	/**

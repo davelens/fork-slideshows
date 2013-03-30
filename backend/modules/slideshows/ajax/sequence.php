@@ -37,6 +37,10 @@ class BackendSlideshowsAjaxSequence extends BackendBaseAJAXAction
 			}
 		}
 
+		BackendModel::triggerEvent(
+			$this->getModule(), 'after_sequence', $ids
+		);
+
 		// success output
 		$this->output(self::OK, null, 'sequence updated');
 	}

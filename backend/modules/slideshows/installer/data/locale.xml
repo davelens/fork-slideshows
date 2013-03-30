@@ -30,6 +30,14 @@
 				<translation language="nl"><![CDATA[Sla uw wijzigingen nu op om een slideshows.php model te genereren voor deze module.]]></translation>
 				<translation language="en"><![CDATA[Save now to generate a slideshows.php model for this module.<br />Afterwards, select this module on the current page to create a new dataset.]]></translation>
 			</item>
+			<item type="message" name="HideButtonNavigation">
+				<translation language="nl"><![CDATA[verberg vorige/volgende knoppen]]></translation>
+				<translation language="en"><![CDATA[hide previous/next buttons]]></translation>
+			</item>
+			<item type="message" name="HidePaging">
+				<translation language="nl"><![CDATA[verberg paginering]]></translation>
+				<translation language="en"><![CDATA[hide pagination]]></translation>
+			</item>
 		</core>
     	<slideshows>
     		<item type="label" name="AddImage">
@@ -71,6 +79,10 @@
     		<item type="label" name="Measurements">
 				<translation language="nl"><![CDATA[afmetingen]]></translation>
 				<translation language="en"><![CDATA[measurements]]></translation>
+			</item>
+			<item type="label" name="Speed">
+				<translation language="nl"><![CDATA[interval-snelheid]]></translation>
+				<translation language="en"><![CDATA[interval speed]]></translation>
 			</item>
 			<item type="label" name="Width">
 				<translation language="nl"><![CDATA[breedte]]></translation>

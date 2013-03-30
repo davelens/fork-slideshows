@@ -115,7 +115,7 @@ class FrontendSlideshowsWidgetIndex extends FrontendBaseWidget
 		}
 
 		// check if the method is callable/exists
-		if(!is_callable($method))
+		if(SPOON_DEBUG && !is_callable($method))
 		{
 			throw new Exception($method . ' is not a valid callable method!');
 		}

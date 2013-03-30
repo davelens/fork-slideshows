@@ -39,6 +39,18 @@
 								{/option:modules}
 							</div>
 						</div>
+
+						<div id="settings" class="box">
+							<div class="heading">
+								<h3>{$lblSettings|ucfirst}</h3>
+							</div>
+							<div class="options horizontal">
+								<p>
+									<label for="speed">{$lblSpeed|ucfirst}</label>
+									{$txtSpeed} {$txtSpeedError}
+								</p>
+							</div>
+						</div>
 					</td>
 
 					<td id="sidebar">
@@ -56,6 +68,24 @@
 									<label for="height">{$lblHeight|ucfirst}</label>
 									{$txtHeight} {$txtHeightError}
 								</p>
+							</div>
+						</div>
+
+						<div class="box">
+							<div class="heading">
+								<h3>{$lblNavigation|ucfirst}</h3>
+							</div>
+							<div class="options">
+								<ul class="inputList">
+									<li>
+										{$chkHideButtonNavigation}
+										<label for="hideButtonNavigation">{$msgHideButtonNavigation}</label>
+									</li>
+									<li>
+										{$chkHidePaging}
+										<label for="hidePaging">{$msgHidePaging}</label>
+									</li>
+								</ul>
 							</div>
 						</div>
 					</td>

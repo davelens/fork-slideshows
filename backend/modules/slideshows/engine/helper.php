@@ -244,7 +244,7 @@ class Frontend' . $camelcasedModule . 'SlideshowsModel
 {
 	public static function getImages()
 	{
-		$db = FrontendModel::getDB();
+		$db = FrontendModel::getContainer()->get(\'database\');
 
 		$records = array();
 

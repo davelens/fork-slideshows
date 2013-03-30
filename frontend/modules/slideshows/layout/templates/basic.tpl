@@ -2,7 +2,7 @@
 	The CSS classes "flexslider", "basic" and "slide" are needed in JS.
 *}
 
-<div class="flexslider">
+<div class="basic-holder" data-slideshow-speed="{option:slideshow.speed}{$slideshow.speed}{/option:slideshow.speed}{option:!slideshow.speed}5000{/option:!slideshow.speed}" data-control-nav="{option:slideshow.hide_paging}false{/option:slideshow.hide_paging}{option:!slideshow.hide_paging}true{/option:!slideshow.hide_paging}" data-direction-nav="{option:slideshow.hide_button_navigation}false{/option:slideshow.hide_button_navigation}{option:!slideshow.hide_button_navigation}true{/option:!slideshow.hide_button_navigation}">
 	<div class="basic">
 		{iteration:items}
 			<div id="basic-{$items.index}" class="slide"{option:!items.first} style="display:none;"{/option:!items.first}>

@@ -5,8 +5,9 @@ jsSlideshows.basic =
 	init: function()
 	{
 		// options: https://github.com/woothemes/FlexSlider/blob/master/jquery.flexslider.js#L804
-		$('.flexslider').flexslider({
-			selector: '.basic > .slide'
+		$('.basic-holder').flexslider({
+			selector: '.basic > .slide',
+			animation: "slide"
 		});
 	},
 

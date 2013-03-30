@@ -38,6 +38,10 @@ class BackendSlideshowsAdd extends BackendBaseActionEdit
 		$this->frm->addDropdown('type', BackendSlideshowsModel::getTypesAsPairs());
 		$this->frm->addDropdown('module', BackendSlideshowsHelper::getSupportedModules());
 		$this->frm->addDropdown('methods');
+
+		$this->frm->addCheckbox('hide_button_navigation');
+		$this->frm->addCheckbox('hide_paging');
+		$this->frm->addText('speed');
 	}
 
 	/**
@@ -64,6 +68,8 @@ class BackendSlideshowsAdd extends BackendBaseActionEdit
 			$module = $this->frm->getField('module');
 			$width = $this->frm->getField('width');
 			$height = $this->frm->getField('height');
+			$hideButtonNavigation = $this->frm->getField('hide_button_navigation')->getChecked();
+			$hidePaging = $this->frm->getField('hide_paging')->getChecked();
 
 			// validate fields
 			$this->frm->getField('name')->isFilled(BL::err('NameIsRequired'));
@@ -90,6 +96,15 @@ class BackendSlideshowsAdd extends BackendBaseActionEdit
 				$item['name'] = $this->frm->getField('name')->getValue();
 				$item['type_id'] = $this->frm->getField('type')->getValue();
 				$item['module'] = ($module->getValue() == '0') ? null : $module->getValue();
+				$item['hide_button_navigation'] = $hideButtonNavigation ? 'Y' : 'N';
+				$item['hide_paging'] = $hidePaging ? 'Y' : 'N';
+				$item['speed'] = (int) $this->frm->getField('speed')->getValue();
+
+				if($item['speed'] === 0)
+				{
+					$item['speed'] = 5000;
+				}
+
 				if($item['module'] !== null)
 				{
 					$item['dataset_id'] = $method;

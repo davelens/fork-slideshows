@@ -61,8 +61,10 @@ class BackendSlideshowsAddImage extends BackendBaseActionEdit
 		$this->frm->addImage('image');
 		$this->frm->addCheckbox('external_link');
 		$this->frm->addText('external_url');
-		$this->frm->addDropdown('internal_url', $internalLinks);
-		$this->frm->getField('internal_url')->setDefaultElement('');
+		$this->frm->addDropdown('internal_url', $internalLinks, '',
+			false,
+			'chzn-select'
+		)->setAttribute('style', 'width:800px')->setDefaultElement('--');;
 	}
 
 	/**

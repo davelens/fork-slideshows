@@ -1,58 +1,40 @@
 <?php
 
-/*
- * This file is part of Fork CMS.
- *
- * For the full copyright and license information, please view the license
- * file that was distributed with this source code.
- */
-
 /**
  * In this file we store all generic functions that we will be using in the slideshows module
  *
- * @author Dave Lens <dave.lens@netlash.com>
- * @author Jelmer Snoeck <jelmer.snoeck@netlash.com>
+ * @author Dave Lens <github-slideshows@davelens.be>
  */
 class BackendSlideshowsModel
 {
-	/**
-	 * Overview of all slideshows
-	 *
-	 * @var	string
-	 */
 	const QRY_DATAGRID_BROWSE =
-		'SELECT i.id, i.name, i.module, a.type
-		 FROM slideshows AS i
-		 INNER JOIN slideshows_types AS a ON a.id = i.type_id
-		 WHERE i.language = ?
-		 GROUP BY i.id';
+		'SELECT a.id, a.name, a.module, b.type
+		 FROM slideshows AS a
+		 INNER JOIN slideshows_types AS b ON b.id = a.type_id
+		 WHERE a.language = ?
+		 GROUP BY a.id';
 
-	/**
-	 * Overview of all images for a slideshow
-	 *
-	 * @var	string
-	 */
 	const QRY_DATAGRID_BROWSE_IMAGES =
-		'SELECT i.id, i.slideshow_id, i.filename, i.title, i.caption, i.sequence
-		 FROM slideshows_images AS i
-		 WHERE i.slideshow_id = ?
-		 GROUP BY i.id';
+		'SELECT a.id, a.slideshow_id, a.filename, a.title, a.caption, a.sequence
+		 FROM slideshows_images AS a
+		 WHERE a.slideshow_id = ?
+		 GROUP BY a.id';
 
 	/**
-	 * Deletes a slideshow.
-	 *
-	 * @param  mixed $ids The ids to delete.
+	 * @param array $ids
 	 */
-	public static function delete($ids)
+	public static function delete(array $ids)
 	{
-		$db = BackendModel::getDB(true);
-
-		$ids = (array) $ids;
-		foreach($ids as $key => $id) $ids[$key] = (int) $id;
+		$db = BackendModel::getContainer()->get('database');
+		foreach($ids as $key => $id)
+		{
+			// only handle ids that are not linked to any page
+			if(self::existsPageBlock((int) $id)) unset($ids[$key]);
+			else $ids[$key] = (int) $id;
+		}
 
 		// create an array with an equal amount of questionmarks as ids provided
 		$idPlaceHolders = array_fill(0, count($ids), '?');
-
 		$imageIDs = $db->getColumn(
 			'SELECT id
 			 FROM slideshows_images
@@ -62,12 +44,14 @@ class BackendSlideshowsModel
 		);
 
 		// delete the images if needed
-		if(!empty($imageIDs)) self::deleteImage($imageIDs);
+		if(!empty($imageIDs))
+		{
+			self::deleteImage($imageIDs);
+		}
 
 		foreach($ids as $id)
 		{
 			SpoonDirectory::delete(FRONTEND_FILES_PATH . '/slideshows/' . $id);
-
 			$slideshow = self::get($id);
 
 			// build extra
@@ -85,13 +69,21 @@ class BackendSlideshowsModel
 				array($extra['id'], $extra['module'], $extra['type'], $extra['action'])
 			);
 
-			// loop and cast to integers
-			foreach($ids as $key => $id) $ids[$key] = (int) $id;
+			// delete extra from linked page
+			$db->delete(
+				'pages_blocks',
+				'extra_id = ?',
+				array($extra['id'])
+			);
+
+			foreach($ids as $key => $id)
+			{
+				$ids[$key] = (int) $id;
+			}
 
 			// create an array with an equal amount of questionmarks as ids provided
 			$idPlaceHolders = array_fill(0, count($ids), '?');
 
-			// delete slideshow
 			$db->delete('slideshows', 'id IN (' . implode(',', $idPlaceHolders) . ')', $ids);
 		}
 
@@ -99,35 +91,23 @@ class BackendSlideshowsModel
 	}
 
 	/**
-	 * Deletes slideshow dataset method
-	 *
-	 * @param mixed $ids The ids to delete.
+	 * @param array $ids
 	 * @return int The number of affected rows
 	 */
-	public static function deleteDatasetMethod($ids)
+	public static function deleteDatasetMethod(array $ids)
 	{
-		$db = BackendModel::getDB(true);
-
-		// make sure ids $is an array
-		$ids = (array) $ids;
-
 		if(empty($ids)) return;
-
-		return (int) $db->delete('slideshows_datasets', 'id IN('. implode(',', $ids) .')');
+		return (int) BackendModel::getContainer()->get('database')->delete(
+			'slideshows_datasets',
+			'id IN('. implode(',', $ids) .')'
+		);
 	}
 
 	/**
-	 * Deletes slideshow images
-	 *
-	 * @param  mixed $ids The ids to delete.
+	 * @param array $ids
 	 */
-	public static function deleteImage($ids)
+	public static function deleteImage(array $ids)
 	{
-		$db = BackendModel::getDB(true);
-
-		// make sure ids $is an array
-		$ids = (array) $ids;
-
 		if(empty($ids)) return;
 
 		foreach($ids as $id)
@@ -135,174 +115,172 @@ class BackendSlideshowsModel
 			$item = self::getImage($id);
 			$slideshow = self::get($item['slideshow_id']);
 
-			// delete image from disk
-			$db->delete('slideshows_images', 'id = ?', array($id));
-
 			// delete image reference from db
-			SpoonFile::delete(FRONTEND_FILES_PATH . '/slideshows/' . $item['slideshow_id'] . '/source/' . $item['filename']);
-			SpoonFile::delete(FRONTEND_FILES_PATH . '/slideshows/' . $item['slideshow_id'] . '/64x64/' . $item['filename']);
-			SpoonFile::delete(FRONTEND_FILES_PATH . '/slideshows/' . $item['slideshow_id'] . '/' . $slideshow['format'] . '/' . $item['filename']);
+			BackendModel::getContainer()->get('database')->delete('slideshows_images', 'id = ?', array($id));
+
+			// delete image from disk
+			$basePath = FRONTEND_FILES_PATH . '/slideshows/' . $item['slideshow_id'];
+			SpoonFile::delete($basePath . '/source/' . $item['filename']);
+			SpoonFile::delete($basePath . '/64x64/' . $item['filename']);
+			SpoonFile::delete($basePath . '/' . $slideshow['format'] . '/' . $item['filename']);
 		}
 
 		BackendModel::invalidateFrontendCache('slideshowCache');
 	}
 
 	/**
-	 * Check if a slideshow exists.
-	 *
-	 * @param int $id The id to check for existence.
+	 * @param int $id
 	 * @return bool
 	 */
 	public static function exists($id)
 	{
-		return (bool) BackendModel::getDB()->getVar(
-			'SELECT i.id
-			 FROM slideshows AS i
-			 WHERE i.id = ?',
+		return (bool) BackendModel::getContainer()->get('database')->getVar(
+			'SELECT 1
+			 FROM slideshows AS a
+			 WHERE a.id = ?',
 			array((int) $id)
 		);
 	}
 
 	/**
-	 * Check if a slideshow dataset method exists.
-	 *
 	 * @param array $item The dataset method record to check against
 	 * @return bool
 	 */
-	public static function existsDataSetMethod($item)
+	public static function existsDataSetMethod(array $item)
 	{
-		return (bool) BackendModel::getDB()->getVar(
-			'SELECT i.id
-			 FROM slideshows_datasets AS i
-			 WHERE i.module = ? AND i.method = ? AND i.label = ?',
+		return (bool) BackendModel::getContainer()->get('database')->getVar(
+			'SELECT 1
+			 FROM slideshows_datasets AS a
+			 WHERE a.module = ? AND a.method = ? AND a.label = ?',
 			array($item['module'], $item['method'], $item['label'])
 		);
 	}
 
 	/**
-	 * Check if a slideshow image exists.
-	 *
-	 * @param int $id The id to check for existence.
+	 * @param int $id
 	 * @return bool
 	 */
 	public static function existsImage($id)
 	{
-		return (bool) BackendModel::getDB()->getVar(
-			'SELECT i.id
-			 FROM slideshows_images AS i
-			 WHERE i.id = ?',
+		return (bool) BackendModel::getContainer()->get('database')->getVar(
+			'SELECT 1
+			 FROM slideshows_images AS a
+			 WHERE a.id = ?',
 			array((int) $id)
 		);
 	}
 
 	/**
-	 * Get slideshow record.
-	 *
-	 * @param int $id The id of the record to get.
+	 * @param int $slideshowId
+	 * @return bool
+	 */
+	public static function existsPageBlock($slideshowId)
+	{
+		return (bool) BackendModel::getContainer()->get('database')->getVar(
+			'SELECT 1
+			 FROM slideshows AS a
+			 INNER JOIN pages_blocks AS b ON b.extra_id = a.extra_id
+			 INNER JOIN pages AS c ON c.revision_id = b.revision_id
+			 WHERE b.visible="Y" AND c.hidden="N" AND c.status="active" AND a.id = ?',
+			array((int) $slideshowId)
+		);
+	}
+
+	/**
+	 * @param int $id
 	 * @return array
 	 */
 	public static function get($id)
 	{
-		return (array) BackendModel::getDB()->getRecord(
-			'SELECT i.*, CONCAT(i.width, "x", i.height) AS format
-			 FROM slideshows AS i
-			 WHERE i.id = ?',
+		return (array) BackendModel::getContainer()->get('database')->getRecord(
+			'SELECT a.*, CONCAT(a.width, "x", a.height) AS format
+			 FROM slideshows AS a
+			 WHERE a.id = ?',
 			array((int) $id)
 		);
 	}
 
 	/**
-	 * Get dataset method record.
-	 *
 	 * @param int $id
 	 * @return array
 	 */
 	public static function getDataSet($id)
 	{
-		return (array) BackendModel::getDB()->getRecord(
-			'SELECT i.*
-			 FROM slideshows_datasets AS i
-			 WHERE i.id = ?',
+		return (array) BackendModel::getContainer()->get('database')->getRecord(
+			'SELECT a.*
+			 FROM slideshows_datasets AS a
+			 WHERE a.id = ?',
 			array((int) $id)
 		);
 	}
 
 	/**
-	 * Get dataset methods by module.
-	 *
-	 * @param string $module The module to fetch the dataset methods for.
+	 * @param string $module
 	 * @return array
 	 */
 	public static function getDataSetMethods($module)
 	{
-		return (array) BackendModel::getDB()->getRecords(
-			'SELECT i.*
-			 FROM slideshows_datasets AS i
-			 WHERE i.module = ?',
+		return (array) BackendModel::getContainer()->get('database')->getRecords(
+			'SELECT a.*
+			 FROM slideshows_datasets AS a
+			 WHERE a.module = ?',
 			array($module),
 			'id'
 		);
 	}
 
 	/**
-	 * Get dataset methods by module as pairs
-	 *
 	 * @param string $module
 	 * @return array
 	 */
 	public static function getDataSetMethodsAsPairs($module)
 	{
-		return (array) BackendModel::getDB()->getPairs(
-			'SELECT i.id, i.label
-			 FROM slideshows_datasets AS i
-			 WHERE i.module = ?',
+		return (array) BackendModel::getContainer()->get('database')->getPairs(
+			'SELECT a.id, a.label
+			 FROM slideshows_datasets AS a
+			 WHERE a.module = ?',
 			array($module)
 		);
 	}
 
 	/**
-	 * Get slideshow image record.
-	 *
-	 * @param int $id The id of the record to get.
+	 * @param int $id
 	 * @return array
 	 */
 	public static function getImage($id)
 	{
-		$item = (array) BackendModel::getDB()->getRecord(
-			'SELECT i.*, i.filename AS image, a.width, a.height
-			 FROM slideshows_images AS i
-			 INNER JOIN slideshows AS a ON a.id = i.slideshow_id
-			 WHERE i.id = ?',
+		$item = (array) BackendModel::getContainer()->get('database')->getRecord(
+			'SELECT a.*, a.filename AS image, b.width, b.height
+			 FROM slideshows_images AS a
+			 INNER JOIN slideshows AS b ON b.id = a.slideshow_id
+			 WHERE a.id = ?',
 			array((int) $id)
 		);
 
-		$item['image_url'] = FRONTEND_FILES_URL . '/slideshows/' . $item['slideshow_id'] . '/' . $item['width'] . 'x' . $item['height'] . '/' . $item['image'];
-
+		$basePath = FRONTEND_FILES_URL . '/slideshows/' . $item['slideshow_id'];
+		$format = $item['width'] . 'x' . $item['height'];
+		$item['image_url'] = $basePath . '/' . $format . '/' . $item['image'];
 		return $item;
 	}
 
 	/**
-	 * Get images from slideshow
-	 *
-	 * @param int $slideshowID The ID of the slideshow to fetch the images for.
+	 * @param int $slideshowID
 	 * @return array
 	 */
 	public static function getImages($slideshowID)
 	{
-		return (array) BackendModel::getDB()->getRecords(
+		return (array) BackendModel::getContainer()->get('database')->getRecords(
 			self::QRY_DATAGRID_BROWSE_IMAGES,
 			array((int) $slideshowID)
 		);
 	}
 
 	/**
-	 * Fetches all the internal Urls
-	 *
 	 * @return array
 	 */
 	public static function getInternalLinks()
 	{
-		return (array) BackendModel::getDB()->getPairs(
+		return (array) BackendModel::getContainer()->get('database')->getPairs(
 			'SELECT p.id AS value, p.title
 			 FROM pages AS p
 			 WHERE p.status = ? AND p.hidden = ? AND p.language = ?',
@@ -311,27 +289,23 @@ class BackendSlideshowsModel
 	}
 
 	/**
-	 * Get the slideshow types as pairs
-	 *
 	 * @return array
 	 */
 	public static function getTypesAsPairs()
 	{
-		return (array) BackendModel::getDB()->getPairs(
+		return (array) BackendModel::getContainer()->get('database')->getPairs(
 			'SELECT id, type
 			 FROM slideshows_types'
 		);
 	}
 
 	/**
-	 * Get the slideshow type settings for the given type ID
-	 *
-	 * @param int $id The ID of the type to fetch.
+	 * @param int $id
 	 * @return array
 	 */
 	public static function getTypeSettings($id)
 	{
-		$settings = BackendModel::getDB()->getVar(
+		$settings = BackendModel::getContainer()->get('database')->getVar(
 			'SELECT settings
 			 FROM slideshows_types
 			 WHERE id = ?',
@@ -342,14 +316,12 @@ class BackendSlideshowsModel
 	}
 
 	/**
-	 * Insert a new slideshow
-	 *
-	 * @param string $item The data for the slideshow.
+	 * @param string $item
 	 * @return int
 	 */
 	private static function insert($item)
 	{
-		$db = BackendModel::getDB(true);
+		$db = BackendModel::getContainer()->get('database');
 
 		// build extra
 		$extra = array(
@@ -400,83 +372,70 @@ class BackendSlideshowsModel
 	}
 
 	/**
-	 * Insert a new dataset method
-	 *
-	 * @param string $item The data for the ... dataset record.
+	 * @param string $item
 	 * @return int
 	 */
 	public static function insertDataSetMethod($item)
 	{
-		$db = BackendModel::getDB(true);
-
-		return $db->insert('slideshows_datasets', $item);
+		return (int) BackendModel::getContainer()->get('database')->insert('slideshows_datasets', $item);
 	}
 
 	/**
-	 * Insert a new slideshow image
-	 *
-	 * @param string $item The data for the image.
+	 * @param string $item
 	 * @return int
 	 */
 	private static function insertImage($item)
 	{
-		return (int) BackendModel::getDB(true)->insert('slideshows_images', $item);
+		return (int) BackendModel::getContainer()->get('database')->insert('slideshows_images', $item);
 	}
 
 	/**
-	 * Saves a slideshow record
-	 *
 	 * @param array $item The record to save.
 	 * @return int
 	 */
-	public static function save($item)
+	public static function save(array $item)
 	{
-		// check if an entry already exists: update existing
 		if(isset($item['id']) && self::exists($item['id']))
 		{
 			self::update($item);
 		}
-		// if no existing entry exist, insert a new one
-		else $item['id'] = self::insert($item);
+		else
+		{
+			$item['id'] = self::insert($item);
+		}
 
 		BackendModel::invalidateFrontendCache('slideshowCache');
-
-		return $item['id'];
+		return (int) $item['id'];
 	}
 
 	/**
-	 * Saves a slideshow image record
-	 *
-	 * @param array $item The image record to save.
+	 * @param array $item
 	 * @return int
 	 */
-	public static function saveImage($item)
+	public static function saveImage(array $item)
 	{
-		// check if an item already exists: update existing
 		if(isset($item['id']) && self::existsImage($item['id']))
 		{
 			self::updateImage($item);
 		}
-		// if no existing entry exist, insert a new one
-		else $item['id'] = self::insertImage($item);
+		else
+		{
+			$item['id'] = self::insertImage($item);
+		}
 
 		BackendModel::invalidateFrontendCache('slideshowCache');
-
-		return $item['id'];
+		return (int) $item['id'];
 	}
 
 	/**
-	 * Update a slideshow
 	 * Remark: $slideshow['id'] should be available.
 	 *
-	 * @param array $item The new data for the slideshow.
-	 * @return int	The amount of updated records
+	 * @param array $item
+	 * @return int
 	 */
-	private static function update($item)
+	private static function update(array $item)
 	{
-		$db = BackendModel::getDB(true);
-
-		// build extra
+		$db = BackendModel::getContainer()->get('database');
 		$extra = array(
 			'id' => $item['extra_id'],
 			'module' => 'slideshows',
@@ -501,39 +460,38 @@ class BackendSlideshowsModel
 		);
 
 		BackendModel::invalidateFrontendCache('slideshowCache');
-
 		return $db->update('slideshows', $item, 'id = ?', $item['id']);
 	}
 
 	/**
-	 * Update an existing dataset method
-	 *
-	 * @param string $item The data for the ... dataset record.
+	 * @param array $item
 	 * @return int
 	 */
-	public static function updateDataSetMethod($item)
+	public static function updateDataSetMethod(array $item)
 	{
-		$db = BackendModel::getDB(true);
-
-		$db->update('slideshows_datasets', $item, 'id = ?', array($item['id']));
+		BackendModel::getContainer()->get('database')->update(
+			'slideshows_datasets',
+			$item,
+			'id = ?',
+			array($item['id'])
+		);
 
 		BackendModel::invalidateFrontendCache('slideshowCache');
-
-		return $item['id'];
+		return (int) $item['id'];
 	}
 
 	/**
-	 * Update a slideshow image
-	 *
-	 * @param array $item The new data for the slideshow.
-	 * @return int The amount of updated records
+	 * @param array $item
+	 * @return int
 	 */
-	private static function updateImage($item)
+	private static function updateImage(array $item)
 	{
-		$db = BackendModel::getDB(true);
-
 		BackendModel::invalidateFrontendCache('slideshowCache');
-
-		return $db->update('slideshows_images', $item, 'id = ?', array($item['id']));
+		return (int) BackendModel::getContainer()->get('database')->update(
+			'slideshows_images',
+			$item,
+			'id = ?',
+			array($item['id'])
+		);
 	}
 }
