@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<locale>
+  	<backend>
+    	<core>
+			<item type="error" name="Exists">
+				<translation language="nl"><![CDATA[De afbeelding bestaat al.]]></translation>
+				<translation language="en"><![CDATA[The image already exists.]]></translation>
+			</item>
+			<item type="error" name="NoActionSelected">
+				<translation language="nl"><![CDATA[Er is geen actie geselecteerd.]]></translation>
+				<translation language="en"><![CDATA[There is no action selected.]]></translation>
+			</item>
+			<item type="error" name="NumericCharactersOnly">
+				<translation language="nl"><![CDATA[Enkel numerieke karakters toegelaten.]]></translation>
+				<translation language="en"><![CDATA[Only  numerich characters allowed.]]></translation>
+			</item>
+			<item type="label" name="Slideshows">
+				<translation language="nl"><![CDATA[slideshows]]></translation>
+				<translation language="en"><![CDATA[slideshows]]></translation>
+			</item>
+			<item type="message" name="ChooseMethodLabel">
+				<translation language="nl"><![CDATA[Kies een functie label]]></translation>
+				<translation language="en"><![CDATA[Choose a method label]]></translation>
+			</item>
+			<item type="message" name="NoMethodsHeading">
+				<translation language="nl"><![CDATA[Er is nog geen slideshows.php model file aangemaakt voor deze module.]]></translation>
+				<translation language="en"><![CDATA[No slideshows.php model has been made yet for this module.<br />Afterwards, select this module on the current page to create a new dataset.]]></translation>
+			</item>
+			<item type="message" name="NoMethodsMessage">
+				<translation language="nl"><![CDATA[Sla uw wijzigingen nu op om een slideshows.php model te genereren voor deze module.]]></translation>
+				<translation language="en"><![CDATA[Save now to generate a slideshows.php model for this module.<br />Afterwards, select this module on the current page to create a new dataset.]]></translation>
+			</item>
+			<item type="message" name="HideButtonNavigation">
+				<translation language="nl"><![CDATA[verberg vorige/volgende knoppen]]></translation>
+				<translation language="en"><![CDATA[hide previous/next buttons]]></translation>
+			</item>
+			<item type="message" name="HidePaging">
+				<translation language="nl"><![CDATA[verberg paginering]]></translation>
+				<translation language="en"><![CDATA[hide pagination]]></translation>
+			</item>
+		</core>
+    	<slideshows>
+    		<item type="label" name="AddImage">
+				<translation language="nl"><![CDATA[afbeelding toevoegen]]></translation>
+				<translation language="en"><![CDATA[add image]]></translation>
+			</item>
+    		<item type="label" name="BackToOverview">
+				<translation language="nl"><![CDATA[terug naar het overzicht]]></translation>
+				<translation language="en"><![CDATA[back to overview]]></translation>
+			</item>
+			<item type="label" name="Caption">
+				<translation language="nl"><![CDATA[bijschrift]]></translation>
+				<translation language="en"><![CDATA[caption]]></translation>
+			</item>
+			<item type="label" name="EditImage">
+				<translation language="nl"><![CDATA[afbeelding wijzigen]]></translation>
+				<translation language="en"><![CDATA[edit image]]></translation>
+			</item>
+			<item type="label" name="ExternalLink">
+				<translation language="nl"><![CDATA[externe link]]></translation>
+				<translation language="en"><![CDATA[external link]]></translation>
+			</item>
+			<item type="label" name="Height">
+				<translation language="nl"><![CDATA[hoogte]]></translation>
+				<translation language="en"><![CDATA[height]]></translation>
+			</item>
+			<item type="label" name="InternalLink">
+				<translation language="nl"><![CDATA[interne link]]></translation>
+				<translation language="en"><![CDATA[internal link]]></translation>
+			</item>
+			<item type="label" name="Link">
+				<translation language="nl"><![CDATA[link]]></translation>
+				<translation language="en"><![CDATA[link]]></translation>
+			</item>
+			<item type="label" name="ManageImages">
+				<translation language="nl"><![CDATA[afbeeldingen beheren]]></translation>
+				<translation language="en"><![CDATA[manage images]]></translation>
+			</item>
+    		<item type="label" name="Measurements">
+				<translation language="nl"><![CDATA[afmetingen]]></translation>
+				<translation language="en"><![CDATA[measurements]]></translation>
+			</item>
+			<item type="label" name="Speed">
+				<translation language="nl"><![CDATA[interval-snelheid]]></translation>
+				<translation language="en"><![CDATA[interval speed]]></translation>
+			</item>
+			<item type="label" name="Width">
+				<translation language="nl"><![CDATA[breedte]]></translation>
+				<translation language="en"><![CDATA[width]]></translation>
+			</item>
+			<item type="message" name="ConfigureDataSet">
+				<translation language="nl"><![CDATA[Configureer de dataset functies voor deze module]]></translation>
+				<translation language="en"><![CDATA[Configure the dataset methods for this module]]></translation>
+			</item>
+			<item type="message" name="ConfirmDelete">
+				<translation language="nl"><![CDATA[Ben je zeker dat je de slideshow "%1$s" wil verwijderen?]]></translation>
+				<translation language="en"><![CDATA[Are you sure you want to delete the "%1$s" slideshow?]]></translation>
+			</item>
+			<item type="message" name="ChooseLabel">
+				<translation language="nl"><![CDATA[Kies het label voor de nieuwe dataset]]></translation>
+				<translation language="en"><![CDATA[Choose the label for the new dataset]]></translation>
+			</item>
+			<item type="message" name="ChooseMethod">
+				<translation language="nl"><![CDATA[Kies de functie voor een nieuwe dataset]]></translation>
+				<translation language="en"><![CDATA[Choose the method for a new dataset]]></translation>
+			</item>
+			<item type="message" name="EnableSlideshowsForModules">
+				<translation language="nl"><![CDATA[Maak slideshows beschikbaar voor de volgende modules]]></translation>
+				<translation language="en"><![CDATA[Enable slideshows for the following modules]]></translation>
+			</item>
+			<item type="message" name="ExternalLink">
+				<translation language="nl"><![CDATA[Gebruik een externe link]]></translation>
+				<translation language="en"><![CDATA[Use an external link]]></translation>
+			</item>
+			<item type="message" name="HelpCaption">
+				<translation language="nl"><![CDATA[Het bijschrift is een stukje tekst dat bij de afbeelding hoort, zoals bv. een stukje beschrijvende tekst met een link.]]></translation>
+				<translation language="en"><![CDATA[The caption is a bit of text to go with the image, for example a basic description with an external link.]]></translation>
+			</item>
+		</slideshows>
+	</backend>
+</locale>
