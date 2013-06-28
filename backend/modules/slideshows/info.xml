@@ -3,7 +3,7 @@
 	<name>slideshows</name>
 	<version>1.0.0</version>
 	<requirements>
-		<minimum_version>3.0.0</minimum_version>
+		<minimum_version>3.5.0</minimum_version>
 	</requirements>
 	<description>
 		<![CDATA[This is the slideshows module. It creates slideshows with specific dimensions and can handle module hooks.]]>
@@ -11,7 +11,7 @@
 	<authors>
 		<author>
 			<name><![CDATA[Dave Lens]]></name>
-			<url><![CDATA[http://www.davelens.be]]></url>
+			<url><![CDATA[http://github.com/davelens]]></url>
 		</author>
 	</authors>
 	<events>
