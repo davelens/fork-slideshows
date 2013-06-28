@@ -24,7 +24,7 @@
 			</item>
 			<item type="message" name="NoMethodsHeading">
 				<translation language="nl"><![CDATA[Er is nog geen slideshows.php model file aangemaakt voor deze module.]]></translation>
-				<translation language="en"><![CDATA[No slideshows.php model has been made yet for this module.<br />Afterwards, select this module on the current page to create a new dataset.]]></translation>
+				<translation language="en"><![CDATA[No slideshows.php model has been made yet for this module.]]></translation>
 			</item>
 			<item type="message" name="NoMethodsMessage">
 				<translation language="nl"><![CDATA[Sla uw wijzigingen nu op om een slideshows.php model te genereren voor deze module.]]></translation>
