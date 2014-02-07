@@ -41,7 +41,7 @@ class BackendSlideshowsSettings extends BackendBaseActionEdit
 		foreach($modules as $key => $module)
 		{
 			// the slideshows module shouldn't be in the list ^^
-			if($module['value'] === 'slideshows') unset($modules[$key]);
+			if(isset($module['value']) && $module['value'] === 'slideshows') unset($modules[$key]);
 
 			// build the values for this checkbox
 			$label = ucfirst(BL::lbl(SpoonFilter::toCamelCase($module)));
