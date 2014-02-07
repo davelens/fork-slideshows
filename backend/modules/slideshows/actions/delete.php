@@ -30,7 +30,7 @@ class BackendSlideshowsDelete extends BackendBaseActionDelete
 			$this->record = (array) BackendSlideshowsModel::get($this->id);
 
 			// delete item
-			BackendSlideshowsModel::delete($this->id);
+			BackendSlideshowsModel::delete(array($this->id));
 
 			// trigger event
 			BackendModel::triggerEvent($this->getModule(), 'after_delete', array('item' => $this->record));
